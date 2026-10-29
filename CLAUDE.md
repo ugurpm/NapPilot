@@ -46,7 +46,10 @@ app from Windows; packing it (`vpk`) needs a Mac, which the release workflow pro
   (`ugurpm`) approves. Never push to `main` directly.
 - Each OS task is a one-off trigger; the app re-arms the next occurrence after each run and at startup.
 - `StartWhenAvailable` stays false (a missed shutdown must never fire later). Only Wake tasks get `WakeToRun`.
-- Match the existing style: file-scoped namespaces, primary constructors, short comments that explain *why*.
+- Match the existing style (`.editorconfig`): file-scoped namespaces, primary constructors, short comments that explain *why*.
+- NuGet versions live only in `Directory.Packages.props` (central package management); csproj files have no versions.
+- GitHub Actions are pinned to full commit SHAs with the version in a comment; workflows get `permissions: contents: read`
+  at the top and only add what a job needs. CI builds treat warnings as errors (`CI=true`).
 
 ## Gotchas
 

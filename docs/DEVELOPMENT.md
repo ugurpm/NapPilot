@@ -124,7 +124,9 @@ git tag v1.0.1
 git push origin v1.0.1
 ```
 
-The repo must be public: the app and the README download links read releases anonymously.
+The repo must be public: the app and the README download links read releases anonymously. Only repository admins can
+create `v*` tags (tag ruleset), so only they can start a release. Each release gets SLSA build provenance
+(`gh attestation verify <file> --repo ugurpm/NapPilot`) and a `SHA256SUMS.txt`.
 
 To build the Windows packages locally (output in `releases/`), install `vpk` once and run the script the workflow uses:
 
