@@ -9,8 +9,9 @@ namespace PowerPlan.App;
 
 public static class AppInfo
 {
-    public const string RepoUrl = "https://github.com/ugurpm/PowerPlan";
-    public const string WebsiteUrl = "https://ugurpm.github.io/PowerPlan/";
+    public const string RepoUrl = "https://github.com/ugurpm/NapPilot";
+    public const string WebsiteUrl = "https://github.com/ugurpm/NapPilot";
+    public const string BugReportUrl = "https://github.com/ugurpm/NapPilot/issues/new?template=bug_report.yml";
 
     /// <summary>The release version without the "+commit" suffix the SDK appends.</summary>
     public static string Version { get; } =

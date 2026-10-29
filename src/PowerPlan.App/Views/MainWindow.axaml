@@ -362,7 +362,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <Button Content="Check now" Command="{Binding CheckForUpdatesCommand}" />
                   <Button Classes="accent" Content="Restart and update" Command="{Binding RestartToUpdateCommand}" IsVisible="{Binding Updater.IsUpdateReady}" />
-                  <Button Content="Website" Command="{Binding OpenWebsiteCommand}" />
+                  <Button Content="GitHub page" Command="{Binding OpenWebsiteCommand}" />
                 </StackPanel>
               </StackPanel>
             </Border>
@@ -372,7 +372,10 @@
                 <TextBlock Classes="h2" Text="About" />
                 <TextBlock Text="{Binding Version}" />
                 <TextBlock Text="{Binding DataDirectory, StringFormat='Data, settings and log: {0}'}" TextWrapping="Wrap" FontSize="12" Opacity="0.7" />
-                <Button Content="Open data folder" Command="{Binding OpenDataFolderCommand}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Open data folder" Command="{Binding OpenDataFolderCommand}" />
+                  <Button Content="Report a bug" Command="{Binding ReportBugCommand}" />
+                </StackPanel>
               </StackPanel>
             </Border>
           </StackPanel>

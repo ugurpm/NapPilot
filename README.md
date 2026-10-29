@@ -7,13 +7,13 @@
 **Your computer's autopilot for shutdown, restart, sleep and wake.**<br>
 Set it once and your PC or Mac turns off at night, wakes up before you do, and restarts when nobody is using it.
 
-[![Latest release](https://img.shields.io/github/v/release/ugurpm/PowerPlan?label=latest&color=4338CA)](https://github.com/ugurpm/PowerPlan/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/ugurpm/PowerPlan/total?color=0D9488)](https://github.com/ugurpm/PowerPlan/releases)
-[![CI](https://github.com/ugurpm/PowerPlan/actions/workflows/ci.yml/badge.svg)](https://github.com/ugurpm/PowerPlan/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/ugurpm/NapPilot?label=latest&color=4338CA)](https://github.com/ugurpm/NapPilot/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/ugurpm/NapPilot/total?color=0D9488)](https://github.com/ugurpm/NapPilot/releases)
+[![CI](https://github.com/ugurpm/NapPilot/actions/workflows/ci.yml/badge.svg)](https://github.com/ugurpm/NapPilot/actions/workflows/ci.yml)
 ![Windows and macOS](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-555)
 
-[![Download for Windows](https://img.shields.io/badge/Download-Windows%20(x64)-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/ugurpm/PowerPlan/releases/latest/download/NapPilot-win-x64-Setup.exe)
-[![Download for Mac](https://img.shields.io/badge/Download-Mac%20(Apple%20silicon)-111111?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/ugurpm/PowerPlan/releases/latest/download/NapPilot-osx-arm64-Setup.pkg)
+[![Download for Windows](https://img.shields.io/badge/Download-Windows%20(x64)-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/ugurpm/NapPilot/releases/latest/download/NapPilot-win-x64-Setup.exe)
+[![Download for Mac](https://img.shields.io/badge/Download-Mac%20(Apple%20silicon)-111111?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/ugurpm/NapPilot/releases/latest/download/NapPilot-osx-arm64-Setup.pkg)
 
 <sub>Other downloads (Windows on ARM, Intel Macs, portable zips) are in the [table below](#download).</sub>
 
@@ -43,10 +43,10 @@ It sits in the tray (Windows) or the menu bar (macOS), can start when you sign i
 
 | | Installer | Portable |
 |---|---|---|
-| **Windows** · Intel / AMD (most PCs) | [NapPilot-win-x64-Setup.exe](https://github.com/ugurpm/PowerPlan/releases/latest/download/NapPilot-win-x64-Setup.exe) | [zip](https://github.com/ugurpm/PowerPlan/releases/latest/download/NapPilot-win-x64-Portable.zip) |
-| **Windows** · ARM (Snapdragon) | [NapPilot-win-arm64-Setup.exe](https://github.com/ugurpm/PowerPlan/releases/latest/download/NapPilot-win-arm64-Setup.exe) | [zip](https://github.com/ugurpm/PowerPlan/releases/latest/download/NapPilot-win-arm64-Portable.zip) |
-| **macOS** · Apple silicon (M1 and later) | [NapPilot-osx-arm64-Setup.pkg](https://github.com/ugurpm/PowerPlan/releases/latest/download/NapPilot-osx-arm64-Setup.pkg) | [zip](https://github.com/ugurpm/PowerPlan/releases/latest/download/NapPilot-osx-arm64-Portable.zip) |
-| **macOS** · Intel | [NapPilot-osx-x64-Setup.pkg](https://github.com/ugurpm/PowerPlan/releases/latest/download/NapPilot-osx-x64-Setup.pkg) | [zip](https://github.com/ugurpm/PowerPlan/releases/latest/download/NapPilot-osx-x64-Portable.zip) |
+| **Windows** · Intel / AMD (most PCs) | [NapPilot-win-x64-Setup.exe](https://github.com/ugurpm/NapPilot/releases/latest/download/NapPilot-win-x64-Setup.exe) | [zip](https://github.com/ugurpm/NapPilot/releases/latest/download/NapPilot-win-x64-Portable.zip) |
+| **Windows** · ARM (Snapdragon) | [NapPilot-win-arm64-Setup.exe](https://github.com/ugurpm/NapPilot/releases/latest/download/NapPilot-win-arm64-Setup.exe) | [zip](https://github.com/ugurpm/NapPilot/releases/latest/download/NapPilot-win-arm64-Portable.zip) |
+| **macOS** · Apple silicon (M1 and later) | [NapPilot-osx-arm64-Setup.pkg](https://github.com/ugurpm/NapPilot/releases/latest/download/NapPilot-osx-arm64-Setup.pkg) | [zip](https://github.com/ugurpm/NapPilot/releases/latest/download/NapPilot-osx-arm64-Portable.zip) |
+| **macOS** · Intel | [NapPilot-osx-x64-Setup.pkg](https://github.com/ugurpm/NapPilot/releases/latest/download/NapPilot-osx-x64-Setup.pkg) | [zip](https://github.com/ugurpm/NapPilot/releases/latest/download/NapPilot-osx-x64-Portable.zip) |
 
 <details>
 <summary><b>Which one do I need?</b></summary>
@@ -76,6 +76,14 @@ The builds are not code-signed yet, so the first launch shows a warning.
 ## Updates
 
 Installed copies check GitHub for a new release every few hours, download it in the background and show **Restart to update**. If you quit instead, the update is installed on the way out. Nothing to do on your side.
+
+## Found a bug? Have an idea?
+
+- 🐞 **[Report a bug](https://github.com/ugurpm/NapPilot/issues/new?template=bug_report.yml)**: the form asks for your NapPilot version, OS and the end of the log (Settings → About → *Open data folder* → `nappilot.log`). There is also a **Report a bug** button in the app's Settings.
+- 💡 **[Suggest a feature](https://github.com/ugurpm/NapPilot/issues/new?template=feature_request.yml)**
+- ✉️ For anything else, write to **ugurpm@gmail.com** or open an [issue](https://github.com/ugurpm/NapPilot/issues).
+
+Pull requests are welcome. Changes reach `main` only through a pull request approved by the maintainer.
 
 ## For developers
 

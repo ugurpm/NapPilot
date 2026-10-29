@@ -1,0 +1,74 @@
+name: Bug report
+description: Something in NapPilot doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. The more of the fields below you fill in, the faster it can be fixed.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What went wrong, and what did you expect instead?
+      placeholder: "I scheduled a Wake for 07:00 on weekdays, but the computer stayed asleep."
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Add a schedule: Wake, 07:00, Weekdays
+        2. Close the lid / click Sleep
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: NapPilot version
+      description: Shown under the NapPilot name at the top of the window, and in Settings → About.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS 15 or later
+        - macOS 14 or earlier
+    validations:
+      required: true
+  - type: dropdown
+    id: cpu
+    attributes:
+      label: Processor
+      options:
+        - Intel / AMD (x64)
+        - ARM (Snapdragon, Apple silicon)
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: computer
+    attributes:
+      label: Computer model
+      description: Helps with sleep and wake problems, which depend on the hardware.
+      placeholder: "Dell XPS 13 9340, MacBook Air M2, ..."
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: |
+        Settings → About → **Open data folder**, then copy the last 30–50 lines of `nappilot.log` around the time of the problem.
+      render: text
+  - type: checkboxes
+    id: dry-run
+    attributes:
+      label: Checks
+      options:
+        - label: Dry-run is off in Settings (with dry-run on, NapPilot only logs power actions).
