@@ -42,7 +42,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] PowerAction newAction = PowerAction.Wake;
     [ObservableProperty] string newTime = "07:00";
     [ObservableProperty, NotifyPropertyChangedFor(nameof(IsOnce))] string newRepeat = "Every day";
-    [ObservableProperty] DateTime? newDate = DateTime.Today.AddDays(1);
+    [ObservableProperty] DateTime? newDate = DateTime.Today;
     [ObservableProperty, NotifyPropertyChangedFor(nameof(HasError))] string? error;
 
     public bool IsOnce => NewRepeat == Once;

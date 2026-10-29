@@ -12,6 +12,7 @@ public sealed class AppServices
     public required ILog Log { get; init; }
     public required PowerCapabilities Capabilities { get; init; }
     public required IPowerController Power { get; init; }
+    public required SleepRequestMarker SleepRequests { get; init; }
     public required ScheduleService Schedules { get; init; }
     public required ScheduledRunner Runner { get; init; }
     public required string DataDirectory { get; init; }
@@ -36,7 +37,8 @@ public sealed class AppServices
 #endif
 
         log.Write($"Started (dry-run: {settings.DryRun}) {capabilities}");
-        var power = settings.DryRun ? new DryRunPowerController(log) : realPower;
+        var sleepRequests = new SleepRequestMarker(Path.Combine(dir, "sleep-request.txt"), TimeProvider.System);
+        var power = new MarkingPowerController(settings.DryRun ? new DryRunPowerController(log) : realPower, sleepRequests);
         var schedules = new ScheduleService(new JsonScheduleStore(Path.Combine(dir, "schedules.json")), backend, TimeProvider.System, log);
 
         return new AppServices
@@ -45,6 +47,7 @@ public sealed class AppServices
             Log = log,
             Capabilities = capabilities,
             Power = power,
+            SleepRequests = sleepRequests,
             Schedules = schedules,
             Runner = new ScheduledRunner(schedules, power, verifier, log),
             DataDirectory = dir,

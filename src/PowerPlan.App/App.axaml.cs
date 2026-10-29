@@ -26,7 +26,12 @@ public partial class App : Application
         {
             Services.Schedules.ArmAll();
 #if WINDOWS
-            var catcher = new SleepCatcher(() => Services.Schedules.HasPendingWake, Services.Power.Hibernate, TimeProvider.System, Services.Log);
+            var catcher = new SleepCatcher(
+                () => Services.Schedules.HasPendingWake,
+                Services.SleepRequests.IsRecent,
+                Services.Power.Hibernate,
+                TimeProvider.System,
+                Services.Log);
             catcher.Start();
             sleepCatcher = catcher;
 #endif

@@ -63,7 +63,4 @@ internal static class NativeMethods
 
     [DllImport("user32.dll")]
     public static extern IntPtr RegisterPowerSettingNotification(IntPtr hWnd, ref Guid powerSetting, int flags);
-
-    [DllImport("user32.dll")]
-    public static extern IntPtr RegisterSuspendResumeNotification(IntPtr hWnd, int flags);
 }

@@ -35,8 +35,10 @@ internal sealed class SleepCatchGate(TimeSpan graceAfterAwake)
 /// <summary>
 /// On Modern Standby hardware a timer cannot wake the PC from standby, only from hibernate.
 /// While a wake is pending, this turns any sleep (Start menu, lid, screen timeout) into hibernate.
+/// Sleeps PowerPlan started itself (<paramref name="sleepAlreadyRequested"/>) are already hibernate and left alone.
 /// </summary>
-public sealed class SleepCatcher(Func<bool> wakePending, Action hibernate, TimeProvider time, ILog log) : IDisposable
+public sealed class SleepCatcher(
+    Func<bool> wakePending, Func<bool> sleepAlreadyRequested, Action hibernate, TimeProvider time, ILog log) : IDisposable
 {
     readonly SleepCatchGate gate = new(TimeSpan.FromSeconds(30));
     Thread? thread;
@@ -73,6 +75,11 @@ public sealed class SleepCatcher(Func<bool> wakePending, Action hibernate, TimeP
 
     void OnSleeping(string reason)
     {
+        if (sleepAlreadyRequested())
+        {
+            log.Write($"Sleep catcher: {reason}, PowerPlan already started this sleep");
+            return;
+        }
         if (!gate.ShouldConvert(time.GetUtcNow(), wakePending())) return;
         log.Write($"Sleep catcher: {reason} while a wake is pending, switching to hibernate");
         // Calling SetSuspendState from the window thread would block power broadcasts.
@@ -89,7 +96,8 @@ public sealed class SleepCatcher(Func<bool> wakePending, Action hibernate, TimeP
             CreateHandle(new CreateParams());
             var display = GUID_CONSOLE_DISPLAY_STATE;
             RegisterPowerSettingNotification(Handle, ref display, 0);
-            RegisterSuspendResumeNotification(Handle, 0);
+            // Suspend/resume broadcasts reach top-level windows without registering;
+            // RegisterSuspendResumeNotification would deliver each one a second time.
         }
 
         protected override void WndProc(ref Message m)
