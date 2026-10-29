@@ -1,0 +1,16 @@
+# Store text with LF in the repo; check out with the platform's line endings.
+* text=auto
+
+# Scripts that must keep one line ending wherever they are checked out.
+*.sh   text eol=lf
+*.ps1  text eol=crlf
+*.cmd  text eol=crlf
+
+# Binary assets: never touch line endings or try to diff them.
+*.png  binary
+*.ico  binary
+*.icns binary
+*.jpg  binary
+*.zip  binary
+*.exe  binary
+*.nupkg binary

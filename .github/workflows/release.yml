@@ -1,5 +1,6 @@
 # Push a tag like v1.2.0 to build NapPilot for Windows and macOS and publish a GitHub release.
 # Installed copies find the release through Velopack's update feed (releases.<channel>.json) and update themselves.
+# Only repository admins can create v* tags (tag ruleset), so only they can start a release.
 name: Release
 
 on:
@@ -7,7 +8,7 @@ on:
     tags: ['v*']
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   VPK_VERSION: 1.2.161
@@ -23,28 +24,35 @@ jobs:
           - { runtime: osx-arm64, os: macos-latest }
           - { runtime: osx-x64, os: macos-latest }
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          dotnet-version: 10.0.x
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
       - run: dotnet tool install -g vpk --version ${{ env.VPK_VERSION }}
 
       - name: Version from tag
         shell: pwsh
-        run: '"VERSION=$("${{ github.ref_name }}".TrimStart("v"))" >> $env:GITHUB_ENV'
+        env:
+          TAG: ${{ github.ref_name }}
+        run: '"VERSION=$($env:TAG.TrimStart("v"))" >> $env:GITHUB_ENV'
 
       - name: Test
         shell: pwsh
         run: |
-          dotnet test tests/PowerPlan.Core.Tests
-          if ("${{ runner.os }}" -eq "Windows") { dotnet test tests/PowerPlan.Platform.Windows.Tests }
-          else { dotnet test tests/PowerPlan.Platform.Mac.Tests }
+          dotnet test tests/PowerPlan.Core.Tests -c Release
+          if ($env:RUNNER_OS -eq "Windows") { dotnet test tests/PowerPlan.Platform.Windows.Tests -c Release }
+          else { dotnet test tests/PowerPlan.Platform.Mac.Tests -c Release }
 
       # The previous release lets vpk build a small delta update; the first release has none.
       - name: Download previous release
         continue-on-error: true
-        run: vpk download github --repoUrl ${{ github.server_url }}/${{ github.repository }} --channel ${{ matrix.runtime }} --token ${{ secrets.GITHUB_TOKEN }} --outputDir releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: vpk download github --repoUrl ${{ github.server_url }}/${{ github.repository }} --channel ${{ matrix.runtime }} --token ${{ env.GH_TOKEN }} --outputDir releases
 
       - name: Pack
         shell: pwsh
@@ -59,23 +67,44 @@ jobs:
             Where-Object { $_.Name -notlike '*.nupkg' -or $_.Name -like "*-$env:VERSION-*" } |
             Copy-Item -Destination upload
           Get-ChildItem upload | Format-Table Name, Length
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ matrix.runtime }}
           path: upload/*
+          if-no-files-found: error
 
   publish:
     needs: pack
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write      # create the release
+      id-token: write      # sign the provenance attestation
+      attestations: write  # store it
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           path: dist
           merge-multiple: true
+
+      # SLSA build provenance: anyone can verify a download came from this workflow with `gh attestation verify`.
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            dist/*.exe
+            dist/*.pkg
+            dist/*.zip
+            dist/*.nupkg
+
+      - name: Checksums
+        run: cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+
       - name: Create release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          gh release create "$GITHUB_REF_NAME" dist/* --title "NapPilot $VERSION" --generate-notes --notes-file .github/release-notes.md
+          gh release create "$TAG" dist/* --title "NapPilot ${TAG#v}" --generate-notes --notes-file .github/release-notes.md

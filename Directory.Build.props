@@ -6,5 +6,18 @@
     <!-- Release version. The release workflow overrides it from the git tag (v1.2.3 → 1.2.3). -->
     <Version>1.0.0</Version>
     <Company>NapPilot</Company>
+    <Authors>Ugur Parmak</Authors>
+    <Copyright>Copyright (c) 2026 Ugur Parmak</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/ugurpm/NapPilot</RepositoryUrl>
+    <!-- Audit every package, transitive ones included, against the GitHub Advisory Database on restore. -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+  </PropertyGroup>
+
+  <!-- CI builds are reproducible (no local paths in the binaries) and fail on any warning, vulnerable packages included. -->
+  <PropertyGroup Condition="'$(CI)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 </Project>

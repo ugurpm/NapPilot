@@ -10,6 +10,9 @@ Set it once and your PC or Mac turns off at night, wakes up before you do, and r
 [![Latest release](https://img.shields.io/github/v/release/ugurpm/NapPilot?label=latest&color=4338CA)](https://github.com/ugurpm/NapPilot/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/ugurpm/NapPilot/total?color=0D9488)](https://github.com/ugurpm/NapPilot/releases)
 [![CI](https://github.com/ugurpm/NapPilot/actions/workflows/ci.yml/badge.svg)](https://github.com/ugurpm/NapPilot/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/ugurpm/NapPilot/actions/workflows/codeql.yml/badge.svg)](https://github.com/ugurpm/NapPilot/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ugurpm/NapPilot/badge)](https://scorecard.dev/viewer/?uri=github.com/ugurpm/NapPilot)
+[![License: MIT](https://img.shields.io/github/license/ugurpm/NapPilot?color=555)](LICENSE)
 ![Windows and macOS](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-555)
 
 [![Download for Windows](https://img.shields.io/badge/Download-Windows%20(x64)-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/ugurpm/NapPilot/releases/latest/download/NapPilot-win-x64-Setup.exe)
@@ -83,7 +86,7 @@ Installed copies check GitHub for a new release every few hours, download it in 
 - 💡 **[Suggest a feature](https://github.com/ugurpm/NapPilot/issues/new?template=feature_request.yml)**
 - ✉️ For anything else, write to **ugurpm@gmail.com** or open an [issue](https://github.com/ugurpm/NapPilot/issues).
 
-Pull requests are welcome. Changes reach `main` only through a pull request approved by the maintainer.
+Pull requests are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Changes reach `main` only through a pull request approved by the maintainer. Please follow the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## For developers
 
@@ -117,4 +120,20 @@ git tag v1.0.1
 git push origin v1.0.1
 ```
 
-More: [development guide](docs/DEVELOPMENT.md) · [roadmap](docs/ROADMAP.md) · [wake findings](docs/WAKE-FINDINGS.md)
+More: [contributing](CONTRIBUTING.md) · [development guide](docs/DEVELOPMENT.md) · [roadmap](docs/ROADMAP.md) · [wake findings](docs/WAKE-FINDINGS.md)
+
+## Security and trust
+
+- Every release is built by GitHub Actions from a tagged commit, never on a personal machine, and ships with
+  **SLSA build provenance** and a `SHA256SUMS.txt`. To check a download:
+
+  ```bash
+  gh attestation verify NapPilot-win-x64-Setup.exe --repo ugurpm/NapPilot
+  ```
+- Code is scanned by **CodeQL**, dependencies by **Dependabot** and dependency review, and the repo by **OpenSSF Scorecard**.
+- Found a vulnerability? Please report it privately, see [SECURITY.md](SECURITY.md).
+
+## License
+
+[MIT](LICENSE) © Ugur Parmak
+
