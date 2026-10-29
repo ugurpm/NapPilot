@@ -33,6 +33,12 @@ public interface IScheduleStore
     void Save(IReadOnlyList<Schedule> schedules);
 }
 
+public interface IHistoryStore
+{
+    IReadOnlyList<RunRecord> Load();
+    void Save(IReadOnlyList<RunRecord> records);
+}
+
 public enum WakeCheck
 {
     WokeOnSchedule,
@@ -45,4 +51,11 @@ public enum WakeCheck
 public interface IWakeVerifier
 {
     WakeCheck Check(Guid scheduleId);
+}
+
+/// <summary>Starts the tray app (<c>--tray</c>) when the user signs in, so wake handling and update checks keep running.</summary>
+public interface ILoginItem
+{
+    bool IsEnabled { get; }
+    void SetEnabled(bool enabled);
 }

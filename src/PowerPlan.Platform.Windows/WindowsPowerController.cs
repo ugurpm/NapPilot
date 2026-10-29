@@ -39,7 +39,7 @@ public sealed class WindowsPowerController(PowerCapabilities capabilities, int s
         var grace = Math.Max(0, shutdownGraceSeconds);
         log.Write($"shutdown.exe {mode} in {grace}s");
         var start = new ProcessStartInfo("shutdown.exe") { CreateNoWindow = true, UseShellExecute = false };
-        foreach (var arg in new[] { mode, "/t", grace.ToString(), "/c", "PowerPlan scheduled this. Run 'shutdown /a' to cancel." })
+        foreach (var arg in new[] { mode, "/t", grace.ToString(), "/c", "NapPilot scheduled this. Run 'shutdown /a' to cancel." })
             start.ArgumentList.Add(arg);
         Process.Start(start)?.WaitForExit();
     }

@@ -50,14 +50,14 @@ public class TaskXmlTests
         var schedule = new Schedule { Name = "x" };
         var exec = TaskXml.Build(schedule, RunAt, @"C:\Apps\PowerPlan.App.exe", "u").Descendants(Ns + "Exec").Single();
         Assert.Equal(@"C:\Apps\PowerPlan.App.exe", exec.Element(Ns + "Command")!.Value);
-        Assert.Equal($"--run {schedule.Id}", exec.Element(Ns + "Arguments")!.Value);
+        Assert.Equal($"--run {schedule.Id} --at {RunAt.ToUnixTimeSeconds()}", exec.Element(Ns + "Arguments")!.Value);
     }
 
     [Fact]
     public void Task_name_is_stable_per_schedule()
     {
         var id = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e");
-        Assert.Equal("PowerPlan-0f8fad5bd9cb469fa16570867728950e", TaskXml.TaskName(id));
+        Assert.Equal("NapPilot-0f8fad5bd9cb469fa16570867728950e", TaskXml.TaskName(id));
     }
 }
 
@@ -98,4 +98,34 @@ public class SleepCatchGateTests
         gate.OnAwake(T0.AddHours(8));
         Assert.True(gate.ShouldConvert(T0.AddHours(9), wakePending: true));
     }
+}
+
+public class WindowsLoginItemTests : IDisposable
+{
+    // A throwaway key, so the test never touches the real Run key.
+    readonly string keyPath = $@"Software\NapPilot.Tests\{Guid.NewGuid():N}";
+
+    [Fact]
+    public void Turns_on_and_off()
+    {
+        var item = new WindowsLoginItem(@"C:\Apps\NapPilot.exe", keyPath);
+        Assert.False(item.IsEnabled);
+
+        item.SetEnabled(true);
+        Assert.True(item.IsEnabled);
+        using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(keyPath)!)
+            Assert.Equal(@"""C:\Apps\NapPilot.exe"" --tray", key.GetValue("NapPilot"));
+
+        item.SetEnabled(false);
+        Assert.False(item.IsEnabled);
+    }
+
+    [Fact]
+    public void Entry_for_another_path_counts_as_off()
+    {
+        new WindowsLoginItem(@"C:\Old\NapPilot.exe", keyPath).SetEnabled(true);
+        Assert.False(new WindowsLoginItem(@"C:\New\NapPilot.exe", keyPath).IsEnabled);
+    }
+
+    public void Dispose() => Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(@"Software\NapPilot.Tests", throwOnMissingSubKey: false);
 }

@@ -4,29 +4,34 @@ Status as of 2026-10-29.
 
 ## Done
 
-- Core scheduling: once / every day / weekdays / weekends, DST-aware next run, validation.
+- Core scheduling: once / every day / weekdays / weekends / custom days, DST-aware next run, validation.
+- Run history (done, dry-run, skipped because late, failed, wake check result), capped at 500 records.
 - Windows: Task Scheduler backend, shutdown / restart (cancellable grace period), sleep-as-hibernate, screen on after wake,
-  wake verification from the event log, capability probe, sleep catcher.
-- Avalonia window (add / delete schedules, wake notes, dry-run banner) and tray icon (Open, Sleep now, Quit).
-- Dry-run mode on by default.
-- Real-hardware wake verified end to end (see [WAKE-FINDINGS.md](WAKE-FINDINGS.md)).
-- 48 unit tests.
+  wake verification from the event log, capability probe, sleep catcher, start at sign-in (Run key).
+- macOS layer (written and unit-tested, **not yet run on a Mac**): LaunchAgents, `pmset` wakes, power actions, login item.
+- App renamed to **NapPilot** with its own icon; data folder migrates from `PowerPlan`.
+- Window: action picker with colours, time picker with quick picks, custom days, live "next run" preview; one list of
+  upcoming, paused and past schedules with filters (all / upcoming / past, action, search), edit, pause/resume, delete,
+  clear past. Settings tab: dry-run, grace period, start at sign-in, updates.
+- Single instance per user; a second launch shows the running window.
+- Dry-run on in Debug builds, off in Release builds.
+- Velopack installers and auto-update from GitHub Releases; release workflow for win-x64, win-arm64, osx-arm64, osx-x64.
+- 121 unit tests (Core, Windows, Mac).
+- Real-hardware wake verified end to end on Windows (see [WAKE-FINDINGS.md](WAKE-FINDINGS.md)).
 
 ## Next
 
-1. **Verify the double-hibernate fix with a real sleep**: dry-run off, schedule a wake, tray **Sleep now**; the log
-   should show `PowerPlan already started this sleep`.
-2. **Countdown before shutdown/restart**: an in-app window with Cancel instead of relying on `shutdown.exe`'s message.
-3. **Start with Windows**: register the tray app to start at sign-in (per-user Run key or a logon task) so the sleep
-   catcher is always running. Ask before adding it.
-4. **Single instance**: a second launch should bring the first window forward instead of starting another tray icon.
-5. **Edit and enable/disable schedules** in the UI, and custom day sets (Mon/Wed/Fri).
-6. **Settings UI** for dry-run and the grace period.
-7. **Repeat the wake tests**: several more Start-menu catches, lid close, overnight; and on a second Windows PC (ideally one
+1. **First release**: make the repo public, push `v1.0.0`, check the workflow output (especially the Mac asset names), install
+   the Windows build and let it update to a `v1.0.1`.
+2. **Test on a real Mac**: launchd job start after a `pmset` wake, the admin prompt, shutdown dialog, menu-bar icon,
+   `.pkg` install, Gatekeeper flow. Expect fixes.
+3. **Verify the double-hibernate fix with a real sleep**: schedule a wake, tray **Sleep now**; the log should show
+   `NapPilot already started this sleep`.
+4. **Countdown before shutdown/restart on Windows**: an in-app window with Cancel instead of `shutdown.exe`'s message.
+5. **Code signing** (Windows certificate, Apple Developer ID + notarization) to remove the first-launch warnings.
+6. **Repeat the wake tests**: several more Start-menu catches, lid close, overnight; and on a second Windows PC (ideally one
    with S3 sleep).
-8. **macOS layer**: `pmset schedule` / `pmset repeat` (needs root, so a privileged helper or an admin prompt), launchd for
-   running actions, capability probe. Check Apple Silicon power-on limits.
-9. **Packaging**: self-contained publish, installer (MSIX or Inno Setup), signed builds.
+7. **Localisation** (Turkish first): the UI strings are English only.
 
 ## Known issues
 
@@ -34,3 +39,5 @@ Status as of 2026-10-29.
   gets a harmless `schtasks /Delete … returned 1` line.
 - Scheduled wake needs AC power on the dev laptop (wake timers disabled on battery) and needs the tray app running.
 - Tasks point at the exe path at registration time; after moving the build output, start the app once so it re-arms.
+  Installed copies live in `%LocalAppData%\NapPilot\current`, which stays the same across updates.
+- Installers are ~65 MB (self-contained .NET + Avalonia); trimming is not enabled.

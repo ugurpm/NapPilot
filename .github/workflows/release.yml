@@ -1,0 +1,81 @@
+# Push a tag like v1.2.0 to build NapPilot for Windows and macOS and publish a GitHub release.
+# Installed copies find the release through Velopack's update feed (releases.<channel>.json) and update themselves.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+env:
+  VPK_VERSION: 1.2.161
+
+jobs:
+  pack:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { runtime: win-x64, os: windows-latest }
+          - { runtime: win-arm64, os: windows-latest }
+          - { runtime: osx-arm64, os: macos-latest }
+          - { runtime: osx-x64, os: macos-latest }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet tool install -g vpk --version ${{ env.VPK_VERSION }}
+
+      - name: Version from tag
+        shell: pwsh
+        run: '"VERSION=$("${{ github.ref_name }}".TrimStart("v"))" >> $env:GITHUB_ENV'
+
+      - name: Test
+        shell: pwsh
+        run: |
+          dotnet test tests/PowerPlan.Core.Tests
+          if ("${{ runner.os }}" -eq "Windows") { dotnet test tests/PowerPlan.Platform.Windows.Tests }
+          else { dotnet test tests/PowerPlan.Platform.Mac.Tests }
+
+      # The previous release lets vpk build a small delta update; the first release has none.
+      - name: Download previous release
+        continue-on-error: true
+        run: vpk download github --repoUrl ${{ github.server_url }}/${{ github.repository }} --channel ${{ matrix.runtime }} --token ${{ secrets.GITHUB_TOKEN }} --outputDir releases
+
+      - name: Pack
+        shell: pwsh
+        run: ./scripts/Pack-Release.ps1 -Runtime ${{ matrix.runtime }} -Version $env:VERSION
+
+      # Upload only this version's files; the downloaded previous package already lives on the previous release.
+      - name: Collect release files
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory upload | Out-Null
+          Get-ChildItem releases -File |
+            Where-Object { $_.Name -notlike '*.nupkg' -or $_.Name -like "*-$env:VERSION-*" } |
+            Copy-Item -Destination upload
+          Get-ChildItem upload | Format-Table Name, Length
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.runtime }}
+          path: upload/*
+
+  publish:
+    needs: pack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" dist/* --title "NapPilot $VERSION" --generate-notes --notes-file .github/release-notes.md

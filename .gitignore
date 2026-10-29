@@ -480,3 +480,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Release builds (scripts/Pack-Release.ps1)
+/publish/
+/releases/

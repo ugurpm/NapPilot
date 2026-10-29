@@ -3,5 +3,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
+    <!-- Release version. The release workflow overrides it from the git tag (v1.2.3 → 1.2.3). -->
+    <Version>1.0.0</Version>
+    <Company>NapPilot</Company>
   </PropertyGroup>
 </Project>

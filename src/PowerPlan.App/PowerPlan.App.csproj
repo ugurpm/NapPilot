@@ -2,9 +2,15 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <!-- Windows builds use the Windows platform layer; other OSes build the shared app until their layer exists. -->
-    <TargetFramework Condition="$([MSBuild]::IsOSPlatform('Windows'))">net10.0-windows</TargetFramework>
-    <TargetFramework Condition="!$([MSBuild]::IsOSPlatform('Windows'))">net10.0</TargetFramework>
+    <AssemblyName>NapPilot</AssemblyName>
+    <RootNamespace>PowerPlan.App</RootNamespace>
+    <Product>NapPilot</Product>
+    <ApplicationIcon>Assets\nappilot.ico</ApplicationIcon>
+    <!-- The Windows layer is used when building on Windows or publishing for win-*; macOS (and publishing for osx-*
+         from any OS) builds the shared app with the Mac layer. -->
+    <UseWindowsLayer Condition="$(RuntimeIdentifier.StartsWith('win')) Or ('$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('Windows')))">true</UseWindowsLayer>
+    <TargetFramework Condition="'$(UseWindowsLayer)' == 'true'">net10.0-windows</TargetFramework>
+    <TargetFramework Condition="'$(UseWindowsLayer)' != 'true'">net10.0</TargetFramework>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
@@ -18,12 +24,13 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Velopack" Version="1.2.161" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PowerPlan.Core\PowerPlan.Core.csproj" />
-    <ProjectReference Include="..\PowerPlan.Platform.Windows\PowerPlan.Platform.Windows.csproj"
-                      Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <ProjectReference Include="..\PowerPlan.Platform.Windows\PowerPlan.Platform.Windows.csproj" Condition="'$(UseWindowsLayer)' == 'true'" />
+    <ProjectReference Include="..\PowerPlan.Platform.Mac\PowerPlan.Platform.Mac.csproj" Condition="'$(UseWindowsLayer)' != 'true'" />
   </ItemGroup>
 
 </Project>

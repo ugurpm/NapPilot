@@ -48,3 +48,26 @@ public sealed record Schedule
     public Recurrence Recurrence { get; init; } = Recurrence.Daily;
     public bool Enabled { get; init; } = true;
 }
+
+public enum RunOutcome
+{
+    Done,
+    /// <summary>Dry-run was on, so the action was only logged.</summary>
+    DryRun,
+    /// <summary>The OS started the run too late (the PC was off or asleep), so it was not carried out.</summary>
+    SkippedLate,
+    Failed,
+}
+
+/// <summary>One past run of a schedule, kept so the app can show what happened.</summary>
+public sealed record RunRecord
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public Guid ScheduleId { get; init; }
+    public string Name { get; init; } = "";
+    public PowerAction Action { get; init; }
+    public DateTimeOffset? ScheduledFor { get; init; }
+    public DateTimeOffset RanAt { get; init; }
+    public RunOutcome Outcome { get; init; }
+    public string? Detail { get; init; }
+}

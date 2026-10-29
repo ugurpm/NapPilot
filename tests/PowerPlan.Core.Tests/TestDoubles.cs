@@ -16,6 +16,13 @@ sealed class MemoryStore : IScheduleStore
     public void Save(IReadOnlyList<Schedule> schedules) { Items.Clear(); Items.AddRange(schedules); }
 }
 
+sealed class MemoryHistory : IHistoryStore
+{
+    public List<RunRecord> Items { get; } = [];
+    public IReadOnlyList<RunRecord> Load() => Items.ToList();
+    public void Save(IReadOnlyList<RunRecord> records) { Items.Clear(); Items.AddRange(records); }
+}
+
 sealed class RecordingBackend : IScheduleBackend
 {
     public Dictionary<Guid, DateTimeOffset> Registered { get; } = [];

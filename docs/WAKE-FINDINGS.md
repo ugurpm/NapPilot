@@ -32,16 +32,16 @@ is pending, switching to hibernate` → task ran on time → `Display on request
 
 1. **Sleep is hibernate while a wake is pending.** `WindowsPowerController.Sleep` hibernates when there is no S3.
    The tray app's `SleepCatcher` turns any other sleep (Start menu, lid, screen timeout) into hibernate.
-2. **Wake = Task Scheduler task with WakeToRun** running `PowerPlan.App.exe --run <id>`. No admin rights needed.
+2. **Wake = Task Scheduler task with WakeToRun** running `NapPilot.exe --run <id> --at <unix seconds>`. No admin rights needed.
 3. **On wake, post `SC_MONITORPOWER`** so the screen comes on.
 4. **Verify every wake** by reading the latest Power-Troubleshooter event 1 and checking it names the task.
-5. **Tell the user the limits** (`WakeAdvisor`): wake needs AC power here, and PowerPlan must be running in the tray.
+5. **Tell the user the limits** (`WakeAdvisor`): wake needs AC power here, and NapPilot must be running in the tray.
 
 ## Details worth knowing
 
 - A screen-off flicker happens right after a timer wake (on, off 0.1 s later, on). `SleepCatchGate` ignores screen-off
   for 30 s after the PC is awake so it does not re-hibernate.
-- When PowerPlan starts a sleep itself, the screen then goes off and the catcher would ask to hibernate a second time.
+- When NapPilot starts a sleep itself, the screen then goes off and the catcher would ask to hibernate a second time.
   `SleepRequestMarker` (a timestamp file shared with the `--run` process) makes the catcher stand down for 30 s.
 - Windows wakes the PC ~10–15 s before the trigger time to prepare; the task still runs at the trigger time.
 - Top-level windows receive suspend/resume broadcasts without `RegisterSuspendResumeNotification`; registering as well

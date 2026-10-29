@@ -54,7 +54,7 @@ public sealed class SleepCatcher(
             Application.Run();
             listener.DestroyHandle();
         })
-        { IsBackground = true, Name = "PowerPlan sleep catcher" };
+        { IsBackground = true, Name = "NapPilot sleep catcher" };
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
         ready.Wait();
@@ -77,7 +77,7 @@ public sealed class SleepCatcher(
     {
         if (sleepAlreadyRequested())
         {
-            log.Write($"Sleep catcher: {reason}, PowerPlan already started this sleep");
+            log.Write($"Sleep catcher: {reason}, NapPilot already started this sleep");
             return;
         }
         if (!gate.ShouldConvert(time.GetUtcNow(), wakePending())) return;

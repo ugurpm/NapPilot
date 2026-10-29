@@ -54,7 +54,7 @@ public class WakeAdvisorTests
     public void On_battery_now_is_called_out()
     {
         var result = WakeAdvisor.Assess(DevLaptop with { OnAcPower = false });
-        Assert.Contains("The PC is on battery right now.", result.Notes);
+        Assert.Contains("It is on battery right now.", result.Notes);
     }
 
     [Fact]

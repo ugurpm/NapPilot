@@ -4,59 +4,380 @@
         xmlns:sys="using:System"
         x:Class="PowerPlan.App.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Title="PowerPlan"
-        Icon="/Assets/powerplan.png"
-        Width="760" Height="600" MinWidth="520" MinHeight="420">
-  <DockPanel Margin="20">
-    <StackPanel DockPanel.Dock="Top" Spacing="12">
-      <TextBlock Text="PowerPlan" FontSize="26" FontWeight="SemiBold" />
+        Title="NapPilot"
+        Icon="/Assets/nappilot.ico"
+        Width="1120" Height="760" MinWidth="900" MinHeight="560"
+        WindowStartupLocation="CenterScreen">
 
-      <Border IsVisible="{Binding DryRun}" Background="#33F59E0B" CornerRadius="6" Padding="10">
+  <Window.Styles>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="18" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Opacity" Value="0.7" />
+      <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+    <Style Selector="TextBlock.h2">
+      <Setter Property="FontSize" Value="18" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.chip, ToggleButton.chip">
+      <Setter Property="Padding" Value="9,3" />
+      <Setter Property="MinHeight" Value="26" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="CornerRadius" Value="14" />
+    </Style>
+    <Style Selector="ToggleButton.day">
+      <Setter Property="Width" Value="46" />
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <!-- Action picker: a row of coloured tiles; the selected one is filled with its colour. -->
+    <Style Selector="ListBox.actions ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0,0,8,0" />
+      <Setter Property="CornerRadius" Value="10" />
+    </Style>
+    <Style Selector="ListBox.actions">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="ListBox.rows ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+    <Style Selector="ListBox.rows">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="ListBox.filters ListBoxItem">
+      <Setter Property="Padding" Value="14,6" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ListBox.filters">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+  </Window.Styles>
+
+  <Window.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="WindowBackground" Color="#F5F6FA" />
+          <SolidColorBrush x:Key="CardBackground" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="CardBorder" Color="#E3E6EE" />
+          <SolidColorBrush x:Key="PastRowBackground" Color="#EEF0F4" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="WindowBackground" Color="#14161C" />
+          <SolidColorBrush x:Key="CardBackground" Color="#1D2029" />
+          <SolidColorBrush x:Key="CardBorder" Color="#2C303C" />
+          <SolidColorBrush x:Key="PastRowBackground" Color="#191B22" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Window.Resources>
+
+  <DockPanel Background="{DynamicResource WindowBackground}">
+
+    <!-- Header -->
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="24,18,24,8">
+      <Image Source="/Assets/nappilot.png" Width="40" Height="40" VerticalAlignment="Center" />
+      <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+        <TextBlock Text="NapPilot" FontSize="22" FontWeight="Bold" />
+        <TextBlock Text="{Binding Version}" FontSize="12" Opacity="0.6" />
+      </StackPanel>
+      <Button Grid.Column="2" Classes="accent" VerticalAlignment="Center"
+              IsVisible="{Binding Updater.IsUpdateReady}" Command="{Binding RestartToUpdateCommand}">
+        <TextBlock Text="{Binding Updater.ReadyVersion, StringFormat='Restart to update to {0}'}" />
+      </Button>
+    </Grid>
+
+    <!-- Banners -->
+    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="24,0,24,8">
+      <Border IsVisible="{Binding SettingDryRun}" Background="#33F59E0B" CornerRadius="8" Padding="12,8">
         <TextBlock TextWrapping="Wrap">
-          <Run FontWeight="SemiBold" Text="Dry-run mode:" />
-          <Run Text="power actions are only written to the log. Set DryRun to false in settings.json to make them real." />
+          <Run FontWeight="SemiBold" Text="Dry-run is on:" />
+          <Run Text="schedules run on time, but power actions are only written to the log. Turn it off under Settings." />
         </TextBlock>
       </Border>
-
-      <ItemsControl ItemsSource="{Binding WakeNotes}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="sys:String">
-            <TextBlock Text="{Binding}" TextWrapping="Wrap" Opacity="0.75" Margin="0,0,0,4" />
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-
-      <TextBlock Text="New schedule" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
-      <WrapPanel ItemSpacing="8" LineSpacing="8">
-        <TextBox Text="{Binding NewName}" Width="180" PlaceholderText="Name" />
-        <ComboBox ItemsSource="{Binding Actions}" SelectedItem="{Binding NewAction}" Width="120" />
-        <TextBox Text="{Binding NewTime}" Width="80" PlaceholderText="HH:mm" />
-        <ComboBox ItemsSource="{Binding RepeatOptions}" SelectedItem="{Binding NewRepeat}" Width="130" />
-        <CalendarDatePicker SelectedDate="{Binding NewDate}" IsVisible="{Binding IsOnce}" Width="150" />
-        <Button Content="Add" Command="{Binding AddCommand}" Classes="accent" />
-      </WrapPanel>
-      <TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}" Foreground="#DC2626" TextWrapping="Wrap" />
-
-      <TextBlock Text="Schedules" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
+      <Border IsVisible="{Binding HasWakeNotes}" Background="#1A3B82F6" CornerRadius="8" Padding="12,8">
+        <ItemsControl ItemsSource="{Binding WakeNotes}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="sys:String">
+              <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="12" Margin="0,1" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
     </StackPanel>
 
-    <TextBlock DockPanel.Dock="Bottom" Text="{Binding DataDirectory, StringFormat='Data and log: {0}'}"
-               Opacity="0.5" FontSize="12" Margin="0,8,0,0" />
+    <TabControl Margin="16,0,16,8">
 
-    <ListBox ItemsSource="{Binding Schedules}">
-      <ListBox.ItemTemplate>
-        <DataTemplate x:DataType="vm:ScheduleRow">
-          <Grid ColumnDefinitions="*,Auto">
-            <StackPanel Spacing="2">
-              <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
-              <TextBlock Text="{Binding Detail}" Opacity="0.7" />
+      <!-- ===================== Schedules ===================== -->
+      <TabItem Header="Schedules">
+        <Grid ColumnDefinitions="400,20,*" Margin="8,12,8,0">
+
+          <!-- Editor -->
+          <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+            <Border Classes="card" VerticalAlignment="Top">
+              <StackPanel Spacing="12">
+                <TextBlock Classes="h2" Text="{Binding EditorTitle}" />
+
+                <StackPanel>
+                  <TextBlock Classes="label" Text="ACTION" />
+                  <ListBox Classes="actions" ItemsSource="{Binding Actions}" SelectedItem="{Binding SelectedAction}">
+                    <ListBox.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <UniformGrid Rows="1" />
+                      </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:ActionStyle">
+                        <Border Background="{Binding SoftBrush}" CornerRadius="10" Padding="6,10">
+                          <StackPanel Spacing="6" HorizontalAlignment="Center">
+                            <PathIcon Data="{Binding Icon}" Foreground="{Binding Brush}" Width="22" Height="22" />
+                            <TextBlock Text="{Binding Label}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </StackPanel>
+
+                <StackPanel>
+                  <TextBlock Classes="label" Text="NAME (OPTIONAL)" />
+                  <TextBox Text="{Binding Name}" PlaceholderText="{Binding SelectedAction.Label}" />
+                </StackPanel>
+
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="label" Text="TIME" />
+                  <TimePicker SelectedTime="{Binding Time}" ClockIdentifier="24HourClock" MinuteIncrement="1"
+                              HorizontalAlignment="Stretch" FontSize="18" />
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="In" VerticalAlignment="Center" FontSize="12" Opacity="0.7" Width="20" />
+                    <Button Classes="chip" Content="5 min" Command="{Binding InCommand}" CommandParameter="5" />
+                    <Button Classes="chip" Content="15 min" Command="{Binding InCommand}" CommandParameter="15" />
+                    <Button Classes="chip" Content="30 min" Command="{Binding InCommand}" CommandParameter="30" />
+                    <Button Classes="chip" Content="1 h" Command="{Binding InCommand}" CommandParameter="60" />
+                    <Button Classes="chip" Content="2 h" Command="{Binding InCommand}" CommandParameter="120" />
+                  </StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="At" VerticalAlignment="Center" FontSize="12" Opacity="0.7" Width="20" />
+                    <Button Classes="chip" Content="07:00" Command="{Binding AtCommand}" CommandParameter="07:00" />
+                    <Button Classes="chip" Content="08:00" Command="{Binding AtCommand}" CommandParameter="08:00" />
+                    <Button Classes="chip" Content="18:00" Command="{Binding AtCommand}" CommandParameter="18:00" />
+                    <Button Classes="chip" Content="22:00" Command="{Binding AtCommand}" CommandParameter="22:00" />
+                    <Button Classes="chip" Content="23:30" Command="{Binding AtCommand}" CommandParameter="23:30" />
+                  </StackPanel>
+                </StackPanel>
+
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="label" Text="WHEN" />
+                  <StackPanel Orientation="Horizontal" Spacing="16">
+                    <RadioButton GroupName="when" Content="Repeat on days" IsChecked="{Binding IsRepeat}" />
+                    <RadioButton GroupName="when" Content="Once on a date" IsChecked="{Binding IsOnce}" />
+                  </StackPanel>
+
+                  <StackPanel Spacing="8" IsVisible="{Binding IsRepeat}">
+                    <ItemsControl ItemsSource="{Binding Days}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Orientation="Horizontal" Spacing="4" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:DayOption">
+                          <ToggleButton Classes="day" Content="{Binding Label}" IsChecked="{Binding IsSelected}" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <WrapPanel ItemSpacing="6" LineSpacing="6">
+                      <Button Classes="chip" Content="Every day" Command="{Binding PickDaysCommand}" CommandParameter="all" />
+                      <Button Classes="chip" Content="Weekdays" Command="{Binding PickDaysCommand}" CommandParameter="weekdays" />
+                      <Button Classes="chip" Content="Weekends" Command="{Binding PickDaysCommand}" CommandParameter="weekends" />
+                      <Button Classes="chip" Content="Clear" Command="{Binding PickDaysCommand}" CommandParameter="none" />
+                    </WrapPanel>
+                  </StackPanel>
+
+                  <CalendarDatePicker SelectedDate="{Binding Date}" IsVisible="{Binding IsOnce}" HorizontalAlignment="Stretch" />
+                </StackPanel>
+
+                <ToggleSwitch IsChecked="{Binding IsActive}" OnContent="Active" OffContent="Paused" IsVisible="{Binding IsEditing}" />
+
+                <Border Background="{Binding SelectedAction.SoftBrush}" CornerRadius="8" Padding="12,10"
+                        IsVisible="{Binding Preview, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <TextBlock Text="{Binding Preview}" TextWrapping="Wrap" FontWeight="SemiBold" />
+                </Border>
+
+                <TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}" Foreground="#DC2626" TextWrapping="Wrap" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Classes="accent" Content="{Binding SaveLabel}" Command="{Binding SaveCommand}" Padding="18,8" />
+                  <Button Content="Cancel" Command="{Binding CancelEditCommand}" IsVisible="{Binding IsEditing}" Padding="18,8" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </ScrollViewer>
+
+          <!-- List -->
+          <DockPanel Grid.Column="2">
+            <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0,0,0,10">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <ListBox Classes="filters" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}">
+                  <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Orientation="Horizontal" Spacing="4" />
+                    </ItemsPanelTemplate>
+                  </ListBox.ItemsPanel>
+                </ListBox>
+                <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="12,0" FontSize="12" Opacity="0.65">
+                  <Run Text="{Binding UpcomingCount}" /><Run Text=" upcoming · " /><Run Text="{Binding PastCount}" /><Run Text=" past" />
+                </TextBlock>
+                <Button Grid.Column="2" Content="Clear past" Command="{Binding ClearPastCommand}" IsVisible="{Binding PastCount}" />
+              </Grid>
+              <Grid ColumnDefinitions="*,10,180">
+                <TextBox Text="{Binding SearchText}" PlaceholderText="Search by name" />
+                <ComboBox Grid.Column="2" ItemsSource="{Binding ActionFilters}" SelectedItem="{Binding SelectedActionFilter}"
+                          HorizontalAlignment="Stretch">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ActionFilter">
+                      <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </Grid>
+              <TextBlock Text="{Binding Notice}" IsVisible="{Binding HasNotice}" FontSize="12" Opacity="0.75" />
             </StackPanel>
-            <Button Grid.Column="1" Content="Delete" VerticalAlignment="Center"
-                    Command="{Binding $parent[ListBox].((vm:MainViewModel)DataContext).RemoveCommand}"
-                    CommandParameter="{Binding}" />
-          </Grid>
-        </DataTemplate>
-      </ListBox.ItemTemplate>
-    </ListBox>
+
+            <Panel>
+              <TextBlock Text="{Binding EmptyText}" IsVisible="{Binding IsEmpty}" TextWrapping="Wrap" Opacity="0.6"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" MaxWidth="320" />
+              <ListBox Classes="rows" ItemsSource="{Binding Rows}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:EntryRow">
+                    <Border Classes="card" Padding="0" Opacity="{Binding RowOpacity}" ClipToBounds="True"
+                            Classes.past="{Binding IsPast}">
+                      <Grid ColumnDefinitions="6,Auto,*,Auto">
+                        <Border Background="{Binding Style.Brush}" />
+                        <Border Grid.Column="1" Background="{Binding Style.SoftBrush}" CornerRadius="10" Width="44" Height="44"
+                                Margin="14,12,0,12" VerticalAlignment="Center">
+                          <PathIcon Data="{Binding Style.Icon}" Foreground="{Binding Style.Brush}" Width="22" Height="22" />
+                        </Border>
+                        <StackPanel Grid.Column="2" Margin="14,10" Spacing="3" VerticalAlignment="Center">
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" />
+                            <Border Background="{Binding Style.SoftBrush}" CornerRadius="4" Padding="6,1" VerticalAlignment="Center">
+                              <TextBlock Text="{Binding Style.Label}" FontSize="11" Foreground="{Binding Style.Brush}" FontWeight="SemiBold" />
+                            </Border>
+                            <Border Classes="kind" CornerRadius="4" Padding="6,1" VerticalAlignment="Center"
+                                    Classes.upcoming="{Binding IsUpcoming}" Classes.paused="{Binding IsPaused}" Classes.past="{Binding IsPast}">
+                              <TextBlock Text="{Binding KindLabel}" FontSize="10" FontWeight="Bold" />
+                            </Border>
+                          </StackPanel>
+                          <TextBlock FontSize="13">
+                            <Run Text="{Binding WhenText}" /><Run Text="  ·  " /><Run Text="{Binding RelativeText}" />
+                          </TextBlock>
+                          <TextBlock Text="{Binding DetailText}" FontSize="12" Opacity="0.65" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" Margin="0,0,14,0" VerticalAlignment="Center">
+                          <Button Content="{Binding ToggleLabel}" IsVisible="{Binding CanToggle}"
+                                  Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).ToggleCommand}" CommandParameter="{Binding}" />
+                          <Button Content="Edit" IsVisible="{Binding CanEdit}"
+                                  Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).EditCommand}" CommandParameter="{Binding}" />
+                          <Button Content="Delete"
+                                  Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).DeleteCommand}" CommandParameter="{Binding}" />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.Styles>
+                  <Style Selector="Border.card.past">
+                    <Setter Property="Background" Value="{DynamicResource PastRowBackground}" />
+                  </Style>
+                  <Style Selector="Border.kind.upcoming">
+                    <Setter Property="Background" Value="#2610B981" />
+                    <Setter Property="TextElement.Foreground" Value="#059669" />
+                  </Style>
+                  <Style Selector="Border.kind.paused">
+                    <Setter Property="Background" Value="#26F59E0B" />
+                    <Setter Property="TextElement.Foreground" Value="#B45309" />
+                  </Style>
+                  <Style Selector="Border.kind.past">
+                    <Setter Property="Background" Value="#268A8F98" />
+                    <Setter Property="TextElement.Foreground" Value="#6B7280" />
+                  </Style>
+                </ListBox.Styles>
+              </ListBox>
+            </Panel>
+          </DockPanel>
+        </Grid>
+      </TabItem>
+
+      <!-- ===================== Settings ===================== -->
+      <TabItem Header="Settings">
+        <ScrollViewer>
+          <StackPanel Spacing="14" Margin="8,12,8,12" MaxWidth="720" HorizontalAlignment="Left">
+            <Border Classes="card">
+              <StackPanel Spacing="14">
+                <TextBlock Classes="h2" Text="Power actions" />
+                <StackPanel>
+                  <ToggleSwitch IsChecked="{Binding SettingDryRun}" OnContent="Dry-run: only log power actions" OffContent="Real: shut down, restart, sleep and wake for real" />
+                  <TextBlock FontSize="12" Opacity="0.65" TextWrapping="Wrap"
+                             Text="Dry-run is for testing: schedules still fire on time and appear under Past, but the computer is not turned off or put to sleep." />
+                </StackPanel>
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="label" Text="WARNING BEFORE SHUT DOWN OR RESTART (SECONDS)" />
+                  <NumericUpDown Value="{Binding SettingGraceSeconds}" Minimum="0" Maximum="600" Increment="15" Width="160" HorizontalAlignment="Left" FormatString="0" />
+                  <TextBlock FontSize="12" Opacity="0.65" TextWrapping="Wrap"
+                             Text="You can cancel during this time (on Windows: run 'shutdown /a'; on macOS: click Cancel in the dialog)." />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+              <StackPanel Spacing="14">
+                <TextBlock Classes="h2" Text="Startup" />
+                <ToggleSwitch IsChecked="{Binding SettingStartAtLogin}" IsEnabled="{Binding CanStartAtLogin}"
+                              OnContent="Start NapPilot in the tray when I sign in" OffContent="Start NapPilot in the tray when I sign in" />
+                <TextBlock FontSize="12" Opacity="0.65" TextWrapping="Wrap"
+                           Text="Recommended for wake schedules: NapPilot must be running to turn sleep into a wake-able sleep. Closing the window keeps NapPilot in the tray; use Quit in the tray menu to exit." />
+              </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+              <StackPanel Spacing="14">
+                <TextBlock Classes="h2" Text="Updates" />
+                <ToggleSwitch IsChecked="{Binding SettingCheckForUpdates}" OnContent="Download updates automatically" OffContent="Download updates automatically" />
+                <TextBlock Text="{Binding Updater.Status}" TextWrapping="Wrap" FontSize="13" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Check now" Command="{Binding CheckForUpdatesCommand}" />
+                  <Button Classes="accent" Content="Restart and update" Command="{Binding RestartToUpdateCommand}" IsVisible="{Binding Updater.IsUpdateReady}" />
+                  <Button Content="Website" Command="{Binding OpenWebsiteCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+              <StackPanel Spacing="10">
+                <TextBlock Classes="h2" Text="About" />
+                <TextBlock Text="{Binding Version}" />
+                <TextBlock Text="{Binding DataDirectory, StringFormat='Data, settings and log: {0}'}" TextWrapping="Wrap" FontSize="12" Opacity="0.7" />
+                <Button Content="Open data folder" Command="{Binding OpenDataFolderCommand}" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+    </TabControl>
   </DockPanel>
 </Window>

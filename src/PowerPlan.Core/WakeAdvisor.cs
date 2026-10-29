@@ -23,14 +23,14 @@ public static class WakeAdvisor
         {
             // Tested on Modern Standby hardware: timers fire from hibernate but not from standby.
             if (!caps.Hibernate)
-                return new(false, ["This PC can only be woken on a timer from hibernate, and hibernate is turned off."]);
-            notes.Add("While a wake is scheduled, PowerPlan turns sleep into hibernate so the wake can fire. Keep PowerPlan running in the tray.");
+                return new(false, ["This computer can only be woken on a timer from hibernate, and hibernate is turned off."]);
+            notes.Add("While a wake is scheduled, NapPilot turns sleep into hibernate so the wake can fire. Keep NapPilot running in the tray.");
         }
 
         if (!caps.WakeTimersOnBattery)
         {
-            notes.Add("Wake timers are off on battery: keep the PC plugged in.");
-            if (!caps.OnAcPower) notes.Add("The PC is on battery right now.");
+            notes.Add("Scheduled wake needs power on this computer: keep it plugged in.");
+            if (!caps.OnAcPower) notes.Add("It is on battery right now.");
         }
         else if (!caps.WakeTimersOnAc)
         {

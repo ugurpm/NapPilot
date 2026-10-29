@@ -11,7 +11,7 @@ public static class TaskXml
 {
     static readonly XNamespace Ns = "http://schemas.microsoft.com/windows/2004/02/mit/task";
 
-    public static string TaskName(Guid scheduleId) => $"PowerPlan-{scheduleId:N}";
+    public static string TaskName(Guid scheduleId) => $"NapPilot-{scheduleId:N}";
 
     public static XDocument Build(Schedule schedule, DateTimeOffset runAt, string exePath, string userId)
     {
@@ -21,7 +21,7 @@ public static class TaskXml
             new XDeclaration("1.0", "UTF-16", null),
             El("Task", new XAttribute("version", "1.2"),
                 El("RegistrationInfo",
-                    El("Author", "PowerPlan"),
+                    El("Author", "NapPilot"),
                     El("Description", $"{schedule.Action}: {schedule.Name}")),
                 El("Triggers",
                     // One-off trigger with an explicit offset; the app arms the next occurrence after each run.
@@ -45,7 +45,7 @@ public static class TaskXml
                 El("Actions", new XAttribute("Context", "Author"),
                     El("Exec",
                         El("Command", exePath),
-                        El("Arguments", $"--run {schedule.Id}")))));
+                        El("Arguments", $"--run {schedule.Id} --at {runAt.ToUnixTimeSeconds()}")))));
     }
 }
 
