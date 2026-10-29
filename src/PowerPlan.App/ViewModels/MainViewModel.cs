@@ -365,6 +365,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     void OpenWebsite() => Open(AppInfo.WebsiteUrl);
 
+    [RelayCommand]
+    void ReportBug() => Open(AppInfo.BugReportUrl);
+
     static void Open(string target) => Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
 
     public void Dispose() => clock.Stop();

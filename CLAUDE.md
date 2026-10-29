@@ -1,7 +1,7 @@
 # NapPilot: notes for Claude Code
 
 Cross-platform (Windows and macOS) desktop app that schedules shutdown, restart, sleep and wake. The product is called
-**NapPilot**; the repo, projects and namespaces keep the old internal name `PowerPlan.*`.
+**NapPilot** (repo `ugurpm/NapPilot`); projects and namespaces keep the old internal name `PowerPlan.*`.
 .NET 10, Avalonia 12, CommunityToolkit.Mvvm, Velopack (installer + auto-update), xUnit 2.
 
 Read these before changing behaviour:
@@ -42,6 +42,8 @@ app from Windows; packing it (`vpk`) needs a Mac, which the release workflow pro
   perform real power actions; tests use fakes, and manual demos use `NAPPILOT_DATA_DIR` with their own settings.
 - Ask the user before installing software, changing Windows settings (power plan, wake timers, BIOS) or putting the PC to sleep.
 - Ask before pushing, tagging a release or changing the GitHub repo: a `v*` tag publishes to every installed copy.
+- The repo is public and `main` is protected: every change goes through a branch and a pull request that the owner
+  (`ugurpm`) approves. Never push to `main` directly.
 - Each OS task is a one-off trigger; the app re-arms the next occurrence after each run and at startup.
 - `StartWhenAvailable` stays false (a missed shutdown must never fire later). Only Wake tasks get `WakeToRun`.
 - Match the existing style: file-scoped namespaces, primary constructors, short comments that explain *why*.

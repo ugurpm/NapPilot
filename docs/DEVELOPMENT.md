@@ -8,11 +8,11 @@
 4. Clone and set your commit identity for this repo:
 
    ```bash
-   git clone https://ugurpm@github.com/ugurpm/PowerPlan.git
+   git clone https://ugurpm@github.com/ugurpm/NapPilot.git
    ```
 
    ```bash
-   git -C PowerPlan config user.email ugurpm@gmail.com
+   git -C NapPilot config user.email ugurpm@gmail.com
    ```
 
    The `ugurpm@` in the URL makes Git Credential Manager use the personal GitHub account even if a work account is

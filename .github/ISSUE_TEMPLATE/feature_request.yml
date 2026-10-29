@@ -1,0 +1,24 @@
+name: Feature request
+description: Suggest an idea or an improvement for NapPilot.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Describe what you're trying to achieve rather than a specific solution.
+      placeholder: "I'd like my PC to shut down only if nobody has used it for 30 minutes."
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could NapPilot help?
+  - type: dropdown
+    id: os
+    attributes:
+      label: Where would you use it?
+      multiple: true
+      options:
+        - Windows
+        - macOS
