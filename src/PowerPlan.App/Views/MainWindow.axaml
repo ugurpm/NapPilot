@@ -1,0 +1,62 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:PowerPlan.App.ViewModels"
+        xmlns:sys="using:System"
+        x:Class="PowerPlan.App.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="PowerPlan"
+        Icon="/Assets/powerplan.png"
+        Width="760" Height="600" MinWidth="520" MinHeight="420">
+  <DockPanel Margin="20">
+    <StackPanel DockPanel.Dock="Top" Spacing="12">
+      <TextBlock Text="PowerPlan" FontSize="26" FontWeight="SemiBold" />
+
+      <Border IsVisible="{Binding DryRun}" Background="#33F59E0B" CornerRadius="6" Padding="10">
+        <TextBlock TextWrapping="Wrap">
+          <Run FontWeight="SemiBold" Text="Dry-run mode:" />
+          <Run Text="power actions are only written to the log. Set DryRun to false in settings.json to make them real." />
+        </TextBlock>
+      </Border>
+
+      <ItemsControl ItemsSource="{Binding WakeNotes}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="sys:String">
+            <TextBlock Text="{Binding}" TextWrapping="Wrap" Opacity="0.75" Margin="0,0,0,4" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <TextBlock Text="New schedule" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
+      <WrapPanel ItemSpacing="8" LineSpacing="8">
+        <TextBox Text="{Binding NewName}" Width="180" PlaceholderText="Name" />
+        <ComboBox ItemsSource="{Binding Actions}" SelectedItem="{Binding NewAction}" Width="120" />
+        <TextBox Text="{Binding NewTime}" Width="80" PlaceholderText="HH:mm" />
+        <ComboBox ItemsSource="{Binding RepeatOptions}" SelectedItem="{Binding NewRepeat}" Width="130" />
+        <CalendarDatePicker SelectedDate="{Binding NewDate}" IsVisible="{Binding IsOnce}" Width="150" />
+        <Button Content="Add" Command="{Binding AddCommand}" Classes="accent" />
+      </WrapPanel>
+      <TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}" Foreground="#DC2626" TextWrapping="Wrap" />
+
+      <TextBlock Text="Schedules" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0" />
+    </StackPanel>
+
+    <TextBlock DockPanel.Dock="Bottom" Text="{Binding DataDirectory, StringFormat='Data and log: {0}'}"
+               Opacity="0.5" FontSize="12" Margin="0,8,0,0" />
+
+    <ListBox ItemsSource="{Binding Schedules}">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:ScheduleRow">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="2">
+              <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding Detail}" Opacity="0.7" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Delete" VerticalAlignment="Center"
+                    Command="{Binding $parent[ListBox].((vm:MainViewModel)DataContext).RemoveCommand}"
+                    CommandParameter="{Binding}" />
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+</Window>

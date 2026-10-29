@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PowerPlan.App/PowerPlan.App.csproj" />
+    <Project Path="src/PowerPlan.Core/PowerPlan.Core.csproj" />
+    <Project Path="src/PowerPlan.Platform.Windows/PowerPlan.Platform.Windows.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PowerPlan.Core.Tests/PowerPlan.Core.Tests.csproj" />
+    <Project Path="tests/PowerPlan.Platform.Windows.Tests/PowerPlan.Platform.Windows.Tests.csproj" />
+  </Folder>
+</Solution>
