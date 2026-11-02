@@ -26,9 +26,11 @@ app from Windows; packing it (`vpk`) needs a Mac, which the release workflow pro
 
 - `src/PowerPlan.Core`: no OS or UI code. Schedules, `RunRecord` history, `ScheduleCalculator` (DST-aware next run),
   `ScheduleValidator`, `ScheduleOverview` (upcoming / paused / past rows), `WakeAdvisor`, `SleepPolicy`, `ScheduleService`,
-  `ScheduledRunner` (skips non-wake runs started more than 5 min late), `SleepRequestMarker`, interfaces in `Abstractions.cs`.
+  `ScheduledRunner` (skips non-wake runs started more than 5 min late), `SleepRequestMarker`, `StartAtSignIn` (one-time
+  default for installed copies), interfaces in `Abstractions.cs`.
 - `src/PowerPlan.Platform.Windows`: `TaskSchedulerBackend` (builds task XML, registers with `schtasks.exe`),
-  `WindowsPowerController`, `WindowsCapabilityProbe`, `WindowsWakeVerifier`, `SleepCatcher`, `WindowsLoginItem` (Run key).
+  `WindowsPowerController`, `WindowsCapabilityProbe`, `WindowsWakeVerifier`, `SleepCatcher`, `WindowsLoginItem` (Run key,
+  honouring the `StartupApproved` switch that Windows Startup apps writes).
 - `src/PowerPlan.Platform.Mac`: `MacScheduleBackend` (per-run LaunchAgents + `pmset schedule wake` via one admin prompt
   covering 30 days), `MacPowerController`, `MacCapabilityProbe`, `MacWakeVerifier`, `MacLoginItem`. Unverified on a real Mac.
 - `src/PowerPlan.App` (assembly `NapPilot`): Avalonia window + tray. `AppServices` is the composition root
@@ -42,6 +44,8 @@ app from Windows; packing it (`vpk`) needs a Mac, which the release workflow pro
   perform real power actions; tests use fakes, and manual demos use `NAPPILOT_DATA_DIR` with their own settings.
 - Ask the user before installing software, changing Windows settings (power plan, wake timers, BIOS) or putting the PC to sleep.
 - Ask before pushing, tagging a release or changing the GitHub repo: a `v*` tag publishes to every installed copy.
+- User-visible changes get a line under **Unreleased** in `CHANGELOG.md`; a release moves them under its version
+  (checklist in docs/DEVELOPMENT.md → Releasing).
 - The repo is public and `main` is protected: every change goes through a branch and a pull request that the owner
   (`ugurpm`) approves. Never push to `main` directly.
 - Each OS task is a one-off trigger; the app re-arms the next occurrence after each run and at startup.

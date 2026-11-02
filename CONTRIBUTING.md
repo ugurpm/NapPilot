@@ -39,7 +39,8 @@ The internal project names are still `PowerPlan.*`; the product is NapPilot.
    code goes behind an interface in `Abstractions.cs` with a fake in the tests. Tests must never perform real power
    actions or touch the real Task Scheduler / launchd.
 4. Run `dotnet test` and make sure the build has no warnings.
-5. Open the pull request and fill in the template.
+5. For a change users will notice, add a line under **Unreleased** in [CHANGELOG.md](CHANGELOG.md).
+6. Open the pull request and fill in the template.
 
 `main` is protected: every change goes through a pull request, CI must pass, and the maintainer reviews and approves
 before it is merged.
