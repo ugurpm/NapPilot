@@ -78,7 +78,7 @@ The builds are not code-signed yet, so the first launch shows a warning.
 
 ## Updates
 
-Installed copies check GitHub for a new release every few hours, download it in the background and show **Restart to update**. If you quit instead, the update is installed on the way out. Nothing to do on your side.
+NapPilot checks GitHub for a new release when it starts and every 6 hours, downloads it in the background (usually a small delta of a few hundred KB) and offers **Restart to update** in the window and the tray menu. If you quit instead, the update is installed on the way out. Nothing to do on your side. What changed in each version: [CHANGELOG.md](CHANGELOG.md).
 
 ## Found a bug? Have an idea?
 
@@ -110,7 +110,7 @@ Debug builds start in **dry-run** (power actions are only logged). Release build
 | `src/PowerPlan.App` | Avalonia window, tray icon, updater. `NapPilot --run <id>` runs one schedule headless. |
 | `tests/*` | xUnit tests for Core and both platform layers. Nothing in them touches real power state. |
 
-**Releasing:** bump nothing by hand, just push a version tag. The [release workflow](.github/workflows/release.yml) tests and packs all four builds and publishes the GitHub release that installed copies update from.
+**Releasing:** update [CHANGELOG.md](CHANGELOG.md), then push a version tag; nothing else needs bumping. The [release workflow](.github/workflows/release.yml) tests and packs all four builds and publishes the GitHub release that installed copies update from. Full checklist: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#releasing).
 
 ```bash
 git tag v1.0.1
@@ -120,7 +120,7 @@ git tag v1.0.1
 git push origin v1.0.1
 ```
 
-More: [contributing](CONTRIBUTING.md) · [development guide](docs/DEVELOPMENT.md) · [roadmap](docs/ROADMAP.md) · [wake findings](docs/WAKE-FINDINGS.md)
+More: [changelog](CHANGELOG.md) · [contributing](CONTRIBUTING.md) · [development guide](docs/DEVELOPMENT.md) · [roadmap](docs/ROADMAP.md) · [wake findings](docs/WAKE-FINDINGS.md)
 
 ## Security and trust
 

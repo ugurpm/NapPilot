@@ -41,12 +41,17 @@ dotnet run --project src/PowerPlan.App
   `history.json`, `nappilot.log`, `sleep-request.txt`. An old `PowerPlan` folder is moved there on first start.
 - Set `NAPPILOT_DATA_DIR` to run a copy against another folder (demos, screenshots). Its schedules still register real
   Task Scheduler tasks, which run against the real data and do nothing; delete them afterwards.
+- Start at sign-in is only switched on by default in **installed** copies (Velopack), once per install
+  (`StartAtSignInDefaultApplied` in `settings.json`). A `dotnet run` build never registers its `bin` folder. To test it,
+  install a release build, or toggle it in **Settings → Startup** and check `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`
+  and `...\Explorer\StartupApproved\Run`.
+- Update checks also only run in installed copies; a development build says so under **Settings → Updates**.
 
 ## Dry-run mode
 
 Debug builds create `settings.json` with `"DryRun": true`; Release builds (the installers) with `false`. The **Settings**
 tab switches it without a restart. In dry-run every power action (shutdown, restart, sleep, hibernate,
-screen on) is only written to `powerplan.log` as `[dry-run] would …`. Everything else is real: schedules are saved,
+screen on) is only written to `nappilot.log` as `[dry-run] would …`. Everything else is real: schedules are saved,
 Task Scheduler tasks are registered and fire on time, the sleep catcher listens. This lets you test scheduling all day
 without the PC turning off.
 
@@ -84,10 +89,10 @@ A real wake test (needs AC power, dry-run off):
 
 ## Tests
 
-- `tests/PowerPlan.Core.Tests`: scheduling, DST, validation, wake advice, service and runner (with fakes), JSON store,
-  sleep-request marker. Runs on any OS.
-- `tests/PowerPlan.Platform.Windows.Tests`: task XML, the sleep catcher's decision logic, the Run-key login item (on a
-  throwaway registry key). Windows only.
+- `tests/PowerPlan.Core.Tests`: scheduling, DST, validation, wake advice, service and runner (with fakes), history and
+  the upcoming / past overview, the start-at-sign-in default, JSON stores, sleep-request marker. Runs on any OS.
+- `tests/PowerPlan.Platform.Windows.Tests`: task XML, the sleep catcher's decision logic, the Run-key login item and the
+  Windows Startup apps switch (on throwaway registry keys). Windows only.
 - `tests/PowerPlan.Platform.Mac.Tests`: launchd plists, pmset wake bookkeeping, power commands, all with a fake command
   runner. Runs on any OS.
 
@@ -113,16 +118,36 @@ README logo (uses headless Edge, nothing to install):
 
 Releases are built by [.github/workflows/release.yml](../.github/workflows/release.yml) when a `v*` tag is pushed. It tests,
 packs win-x64 and win-arm64 (on Windows) and osx-arm64 and osx-x64 (on macOS) with Velopack, and creates the GitHub release
-with the installers, portable zips and the update feed (`releases.<channel>.json`). Installed copies check that feed every
-6 hours and offer **Restart to update**.
+with the installers, portable zips, full and delta packages and the update feed (`releases.<channel>.json`). The version
+comes from the tag; nothing else needs bumping.
 
-```bash
-git tag v1.0.1
-```
+Checklist:
 
-```bash
-git push origin v1.0.1
-```
+1. Move the **Unreleased** entries in [CHANGELOG.md](../CHANGELOG.md) under a new version heading with today's date, and
+   update the compare links at the bottom. Merge that through a pull request like any change.
+2. Wait for CI on `main` to pass.
+3. Tag the merge commit on `main` and push the tag (only repository admins can):
+
+   ```bash
+   git tag -a v1.0.2 -m "NapPilot 1.0.2"
+   ```
+
+   ```bash
+   git push origin v1.0.2
+   ```
+
+4. When the workflow finishes, check that the release lists all four `Setup` files, the portable zips and
+   `releases.<channel>.json`, and that the README download links work.
+
+### How installed copies update
+
+- An installed copy checks the feed at startup and every 6 hours while it runs (Settings → Updates can turn this off).
+- A new version downloads in the background: a small delta package when the previous version is installed, otherwise the
+  full package.
+- When it's ready, the window header and the tray menu show **Restart to update to <version>**. If the user quits
+  instead, the update is installed on the way out.
+- Each install only follows its own channel (`win-x64`, `win-arm64`, `osx-arm64`, `osx-x64`).
+- Verified on a real install: a v1.0.0 copy found and offered v1.0.1.
 
 The repo must be public: the app and the README download links read releases anonymously. Only repository admins can
 create `v*` tags (tag ruleset), so only they can start a release. Each release gets SLSA build provenance
