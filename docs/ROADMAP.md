@@ -1,6 +1,6 @@
 # Roadmap
 
-Status as of 2026-10-29.
+Status as of 2026-11-02.
 
 ## Done
 
@@ -14,15 +14,17 @@ Status as of 2026-10-29.
   upcoming, paused and past schedules with filters (all / upcoming / past, action, search), edit, pause/resume, delete,
   clear past. Settings tab: dry-run, grace period, start at sign-in, updates.
 - Single instance per user; a second launch shows the running window.
+- Installed copies start at sign-in by default (applied once per install; switching it off in the app or in Windows
+  Startup apps / macOS Login Items is respected). Update-ready shows in the tray menu too.
 - Dry-run on in Debug builds, off in Release builds.
 - Velopack installers and auto-update from GitHub Releases; release workflow for win-x64, win-arm64, osx-arm64, osx-x64.
-- 121 unit tests (Core, Windows, Mac).
+- v1.0.0 released (2026-10-29) with SLSA provenance and checksums; repo hardened (CodeQL, Dependabot, Scorecard, rulesets).
+- 126 unit tests (Core, Windows, Mac).
 - Real-hardware wake verified end to end on Windows (see [WAKE-FINDINGS.md](WAKE-FINDINGS.md)).
 
 ## Next
 
-1. **First release**: make the repo public, push `v1.0.0`, check the workflow output (especially the Mac asset names), install
-   the Windows build and let it update to a `v1.0.1`.
+1. **Check auto-update end to end**: install v1.0.0, release v1.0.1, confirm the tray offers **Restart to update**.
 2. **Test on a real Mac**: launchd job start after a `pmset` wake, the admin prompt, shutdown dialog, menu-bar icon,
    `.pkg` install, Gatekeeper flow. Expect fixes.
 3. **Verify the double-hibernate fix with a real sleep**: schedule a wake, tray **Sleep now**; the log should show

@@ -350,7 +350,7 @@
                 <ToggleSwitch IsChecked="{Binding SettingStartAtLogin}" IsEnabled="{Binding CanStartAtLogin}"
                               OnContent="Start NapPilot in the tray when I sign in" OffContent="Start NapPilot in the tray when I sign in" />
                 <TextBlock FontSize="12" Opacity="0.65" TextWrapping="Wrap"
-                           Text="Recommended for wake schedules: NapPilot must be running to turn sleep into a wake-able sleep. Closing the window keeps NapPilot in the tray; use Quit in the tray menu to exit." />
+                           Text="On by default: wake schedules and automatic updates need NapPilot running in the tray. You can also turn it off in Windows Settings → Apps → Startup, or in macOS System Settings → General → Login Items. Closing the window keeps NapPilot in the tray; use Quit in the tray menu to exit." />
               </StackPanel>
             </Border>
 
