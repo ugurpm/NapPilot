@@ -6,6 +6,7 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using PowerPlan.App.ViewModels;
 using PowerPlan.App.Views;
+using PowerPlan.Core;
 #if WINDOWS
 using PowerPlan.Platform.Windows;
 #endif
@@ -43,6 +44,8 @@ public partial class App : Application
             sleepCatcher = catcher;
 #endif
             updater = new Updater(Services.Log);
+            // Only installed copies: a dev build would register its bin folder to start at sign-in.
+            if (updater.IsInstalled) ApplyStartAtSignInDefault();
             CreateTrayIcon(desktop);
             Instance.ShowRequested += () => Dispatcher.UIThread.Post(ShowWindow);
             desktop.Exit += (_, _) =>
@@ -57,6 +60,20 @@ public partial class App : Application
             StartUpdateChecks();
         }
         base.OnFrameworkInitializationCompleted();
+    }
+
+    static void ApplyStartAtSignInDefault()
+    {
+        if (Services.LoginItem is not { } loginItem) return;
+        try
+        {
+            var settings = StartAtSignIn.ApplyDefault(Services.Settings, loginItem, Services.Log);
+            if (settings != Services.Settings) Services.SaveSettings(settings);
+        }
+        catch (Exception e)
+        {
+            Services.Log.Write($"Turning on start at sign-in failed: {e.Message}");
+        }
     }
 
     void StartUpdateChecks()
@@ -83,6 +100,17 @@ public partial class App : Application
             Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://NapPilot/Assets/nappilot.png"))),
             ToolTipText = "NapPilot",
             Menu = new NativeMenu { Items = { open, sleep, new NativeMenuItemSeparator(), quit } },
+        };
+
+        // Most of the time NapPilot only lives in the tray, so a downloaded update is offered there too.
+        updater.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(Updater.IsUpdateReady) || !updater.IsUpdateReady) return;
+            var update = new NativeMenuItem($"Restart to update to {updater.ReadyVersion}");
+            update.Click += (_, _) => updater.RestartNow();
+            tray.Menu!.Items.Insert(0, update);
+            tray.Menu.Items.Insert(1, new NativeMenuItemSeparator());
+            tray.ToolTipText = $"NapPilot: version {updater.ReadyVersion} is ready to install";
         };
         tray.Clicked += (_, _) => ShowWindow();
         TrayIcon.SetIcons(this, [tray]);

@@ -71,7 +71,7 @@ The builds are not code-signed yet, so the first launch shows a warning.
 <summary><b>Good to know</b></summary>
 
 - **Wake needs power.** Many laptops only wake on a timer when plugged in. NapPilot shows a note when that applies.
-- **Keep NapPilot running for wake.** Turn on *Settings → Start NapPilot in the tray when I sign in*.
+- **NapPilot starts when you sign in**, in the tray / menu bar, because wake schedules and updates need it running. Turn it off in the app's Settings, in Windows *Settings → Apps → Startup*, or in macOS *Login Items*; NapPilot won't turn it back on.
 - **Mac wake asks for your password.** macOS needs administrator rights to schedule a wake (`pmset`), so NapPilot asks once and schedules the next 30 days at a time.
 - **Testing without risk:** *Settings → Dry-run* makes every schedule fire on time but only write to the log instead of turning anything off.
 </details>

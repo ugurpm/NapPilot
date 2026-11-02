@@ -86,6 +86,9 @@ public sealed record AppSettings
 
     public bool CheckForUpdates { get; init; } = true;
 
+    /// <summary>Set once start at sign-in has been switched on by default; see <see cref="StartAtSignIn"/>.</summary>
+    public bool StartAtSignInDefaultApplied { get; init; }
+
 #if DEBUG
     const bool DefaultDryRun = true;
 #else

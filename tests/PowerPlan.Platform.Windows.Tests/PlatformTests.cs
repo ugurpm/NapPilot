@@ -102,18 +102,28 @@ public class SleepCatchGateTests
 
 public class WindowsLoginItemTests : IDisposable
 {
-    // A throwaway key, so the test never touches the real Run key.
-    readonly string keyPath = $@"Software\NapPilot.Tests\{Guid.NewGuid():N}";
+    // Throwaway keys, so the tests never touch the real Run and StartupApproved keys.
+    readonly string runKey = $@"Software\NapPilot.Tests\{Guid.NewGuid():N}\Run";
+    readonly string approvedKey = $@"Software\NapPilot.Tests\{Guid.NewGuid():N}\Approved";
+
+    WindowsLoginItem Item(string exe = @"C:\Apps\NapPilot.exe") => new(exe, runKey, approvedKey);
+
+    // What Windows writes when the user switches a startup app off (03) or back on (02), followed by a timestamp.
+    void MarkInWindows(byte state)
+    {
+        using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(approvedKey);
+        key.SetValue("NapPilot", new byte[] { state, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, Microsoft.Win32.RegistryValueKind.Binary);
+    }
 
     [Fact]
     public void Turns_on_and_off()
     {
-        var item = new WindowsLoginItem(@"C:\Apps\NapPilot.exe", keyPath);
+        var item = Item();
         Assert.False(item.IsEnabled);
 
         item.SetEnabled(true);
         Assert.True(item.IsEnabled);
-        using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(keyPath)!)
+        using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(runKey)!)
             Assert.Equal(@"""C:\Apps\NapPilot.exe"" --tray", key.GetValue("NapPilot"));
 
         item.SetEnabled(false);
@@ -123,8 +133,30 @@ public class WindowsLoginItemTests : IDisposable
     [Fact]
     public void Entry_for_another_path_counts_as_off()
     {
-        new WindowsLoginItem(@"C:\Old\NapPilot.exe", keyPath).SetEnabled(true);
-        Assert.False(new WindowsLoginItem(@"C:\New\NapPilot.exe", keyPath).IsEnabled);
+        Item(@"C:\Old\NapPilot.exe").SetEnabled(true);
+        Assert.False(Item(@"C:\New\NapPilot.exe").IsEnabled);
+    }
+
+    [Fact]
+    public void Switched_off_in_Windows_startup_apps_counts_as_off()
+    {
+        Item().SetEnabled(true);
+        MarkInWindows(0x03);
+        Assert.False(Item().IsEnabled);
+
+        MarkInWindows(0x02);
+        Assert.True(Item().IsEnabled);
+    }
+
+    [Fact]
+    public void Turning_on_in_NapPilot_clears_the_Windows_off_switch()
+    {
+        Item().SetEnabled(true);
+        MarkInWindows(0x03);
+
+        Item().SetEnabled(true);
+
+        Assert.True(Item().IsEnabled);
     }
 
     public void Dispose() => Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(@"Software\NapPilot.Tests", throwOnMissingSubKey: false);
