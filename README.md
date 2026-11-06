@@ -39,6 +39,7 @@ Set it once and your PC or Mac turns off at night, wakes up before you do, and r
 | 🌙 **Wake that works on modern laptops** | On Windows laptops with Modern Standby, timers cannot wake the PC from sleep. NapPilot turns sleep into hibernate while a wake is pending, so the wake fires. |
 | 🔄 **Updates itself** | Downloads new versions in the background and installs them when you restart it. |
 | 🔒 **Local and private** | No account, no cloud, no tracking. Schedules live in a JSON file on your computer. |
+| 👨‍👩‍👧 **Parental mode** | Set a password and anyone without it can look but not touch: adding, editing, pausing/resuming or deleting a schedule, and clearing history, all ask for it first. The schedule list, history, filters and search stay visible to everyone. |
 
 It sits in the tray (Windows) or the menu bar (macOS), can start when you sign in, and uses the system scheduler (Task Scheduler / launchd) so schedules run even when the window is closed.
 
@@ -74,6 +75,7 @@ The builds are not code-signed yet, so the first launch shows a warning.
 - **NapPilot starts when you sign in**, in the tray / menu bar, because wake schedules and updates need it running. Turn it off in the app's Settings, in Windows *Settings → Apps → Startup*, or in macOS *Login Items*; NapPilot won't turn it back on.
 - **Mac wake asks for your password.** macOS needs administrator rights to schedule a wake (`pmset`), so NapPilot asks once and schedules the next 30 days at a time.
 - **Testing without risk:** *Settings → Dry-run* makes every schedule fire on time but only write to the log instead of turning anything off.
+- **Parental mode:** turn it on under *Settings → Parental mode*. The password is hashed, never stored in plain text. Once you enter it, the window stays unlocked until you close it or lock it again.
 </details>
 
 ## Updates
