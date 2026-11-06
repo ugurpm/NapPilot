@@ -51,6 +51,26 @@ sealed class ListLog : ILog
     public void Write(string message) => Lines.Add(message);
 }
 
+sealed class FakeIdleTime : IIdleTimeProvider
+{
+    public TimeSpan IdleTime { get; set; } = TimeSpan.MaxValue;
+}
+
+/// <summary>Returns one scripted decision per call, so a test can walk through a postpone-then-cancel sequence.</summary>
+sealed class ScriptedPrompt : IActivityPrompt
+{
+    readonly Queue<PostponeDecision> decisions;
+    public List<Schedule> Asked { get; } = [];
+
+    public ScriptedPrompt(params PostponeDecision[] decisions) => this.decisions = new Queue<PostponeDecision>(decisions);
+
+    public PostponeDecision Ask(Schedule schedule, DateTimeOffset scheduledFor)
+    {
+        Asked.Add(schedule);
+        return decisions.Count > 0 ? decisions.Dequeue() : new(PostponeChoice.Proceed);
+    }
+}
+
 static class Zones
 {
     public static readonly TimeZoneInfo London = TimeZoneInfo.FindSystemTimeZoneById("Europe/London");

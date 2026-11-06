@@ -14,8 +14,9 @@ public class ScheduleServiceTests
 
     public ScheduleServiceTests() => service = new ScheduleService(store, history, backend, time, log);
 
-    ScheduledRunner Runner(WakeCheck check = WakeCheck.WokeOnSchedule, bool dryRun = false) =>
-        new(service, power, new FixedWakeVerifier(check), () => dryRun, log);
+    ScheduledRunner Runner(WakeCheck check = WakeCheck.WokeOnSchedule, bool dryRun = false, IIdleTimeProvider? idleTime = null, IActivityPrompt? prompt = null) =>
+        new(service, power, new FixedWakeVerifier(check), () => dryRun, log,
+            idleTime ?? new FakeIdleTime(), prompt ?? new ScriptedPrompt(), pauseForActiveUse: true, idleThreshold: TimeSpan.FromMinutes(2));
 
     [Fact]
     public void Save_stores_and_arms_next_run()
@@ -173,7 +174,8 @@ public class ScheduleServiceTests
         service.Save(schedule);
 
         Assert.Throws<InvalidOperationException>(() =>
-            new ScheduledRunner(service, new ThrowingPower(), new FixedWakeVerifier(WakeCheck.Unknown), () => false, log).Run(schedule.Id));
+            new ScheduledRunner(service, new ThrowingPower(), new FixedWakeVerifier(WakeCheck.Unknown), () => false, log,
+                new FakeIdleTime(), new ScriptedPrompt(), pauseForActiveUse: true, idleThreshold: TimeSpan.FromMinutes(2)).Run(schedule.Id));
 
         var record = history.Items.Single();
         Assert.Equal(RunOutcome.Failed, record.Outcome);
@@ -213,7 +215,8 @@ public class ScheduleServiceTests
         store.Items.Add(schedule);
         var refusing = new ScheduleService(store, history, new ThrowingBackend(), time, log);
 
-        Assert.True(new ScheduledRunner(refusing, power, new FixedWakeVerifier(WakeCheck.Unknown), () => false, log).Run(schedule.Id));
+        Assert.True(new ScheduledRunner(refusing, power, new FixedWakeVerifier(WakeCheck.Unknown), () => false, log,
+            new FakeIdleTime(), new ScriptedPrompt(), pauseForActiveUse: true, idleThreshold: TimeSpan.FromMinutes(2)).Run(schedule.Id));
 
         Assert.Equal(["Shutdown"], power.Calls);
         Assert.Contains(log.Lines, l => l.Contains("running it anyway"));
@@ -288,6 +291,125 @@ public class ScheduleServiceTests
         Assert.False(service.HasPendingWake);
         service.Save(new Schedule { Name = "w", Action = PowerAction.Wake, Time = new TimeOnly(7, 0) });
         Assert.True(service.HasPendingWake);
+    }
+
+    [Fact]
+    public void Idle_user_is_never_asked()
+    {
+        var schedule = new Schedule { Name = "Night", Action = PowerAction.Shutdown, Time = new TimeOnly(23, 0) };
+        service.Save(schedule);
+        var prompt = new ScriptedPrompt();
+
+        Runner(prompt: prompt).Run(schedule.Id);
+
+        Assert.Empty(prompt.Asked);
+        Assert.Equal(["Shutdown"], power.Calls);
+    }
+
+    [Fact]
+    public void Active_user_can_postpone_instead_of_running()
+    {
+        var schedule = new Schedule { Name = "Night", Action = PowerAction.Shutdown, Time = new TimeOnly(23, 0) };
+        service.Save(schedule);
+        var prompt = new ScriptedPrompt(new PostponeDecision(PostponeChoice.Postpone, TimeSpan.FromMinutes(30)));
+
+        Assert.True(Runner(idleTime: new FakeIdleTime { IdleTime = TimeSpan.Zero }, prompt: prompt).Run(schedule.Id));
+
+        Assert.Empty(power.Calls);
+        Assert.Equal(time.Now.AddMinutes(30), backend.Registered[schedule.Id]);
+        Assert.Equal(RunOutcome.Postponed, history.Items.Single().Outcome);
+        Assert.Contains("30m", history.Items.Single().Detail);
+    }
+
+    [Fact]
+    public void Postponing_a_one_off_schedule_leaves_it_enabled()
+    {
+        var schedule = new Schedule
+        {
+            Name = "x", Action = PowerAction.Shutdown, Time = new TimeOnly(23, 0),
+            Recurrence = Recurrence.Once(new DateOnly(2026, 10, 29)),
+        };
+        service.Save(schedule);
+        time.Now = new DateTimeOffset(2026, 10, 29, 23, 0, 0, TimeSpan.Zero);
+        var prompt = new ScriptedPrompt(new PostponeDecision(PostponeChoice.Postpone, TimeSpan.FromMinutes(10)));
+
+        Runner(idleTime: new FakeIdleTime { IdleTime = TimeSpan.Zero }, prompt: prompt).Run(schedule.Id);
+
+        Assert.True(store.Items.Single().Enabled);
+        Assert.Equal(time.Now.AddMinutes(10), backend.Registered[schedule.Id]);
+    }
+
+    [Fact]
+    public void Cancelling_for_today_skips_to_the_next_occurrence()
+    {
+        var schedule = new Schedule { Name = "Night", Action = PowerAction.Shutdown, Time = new TimeOnly(23, 0) };
+        service.Save(schedule);
+        var due = new DateTimeOffset(2026, 10, 29, 23, 0, 0, TimeSpan.Zero);
+        time.Now = due;
+        var prompt = new ScriptedPrompt(new PostponeDecision(PostponeChoice.CancelledForToday));
+
+        Assert.True(Runner(idleTime: new FakeIdleTime { IdleTime = TimeSpan.Zero }, prompt: prompt).Run(schedule.Id, due));
+
+        Assert.Empty(power.Calls);
+        Assert.Equal(RunOutcome.CancelledForToday, history.Items.Single().Outcome);
+        Assert.Equal(new DateTimeOffset(2026, 10, 30, 23, 0, 0, TimeSpan.Zero), backend.Registered[schedule.Id]);
+    }
+
+    [Fact]
+    public void Proceeding_despite_activity_runs_as_normal()
+    {
+        var schedule = new Schedule { Name = "Night", Action = PowerAction.Shutdown, Time = new TimeOnly(23, 0) };
+        service.Save(schedule);
+        var prompt = new ScriptedPrompt(new PostponeDecision(PostponeChoice.Proceed));
+
+        Runner(idleTime: new FakeIdleTime { IdleTime = TimeSpan.Zero }, prompt: prompt).Run(schedule.Id);
+
+        Assert.Equal(["Shutdown"], power.Calls);
+        Assert.Equal(RunOutcome.Done, history.Items.Single().Outcome);
+    }
+
+    [Fact]
+    public void Late_run_is_skipped_without_asking()
+    {
+        var schedule = new Schedule { Name = "Night", Action = PowerAction.Shutdown, Time = new TimeOnly(23, 0) };
+        service.Save(schedule);
+        var due = new DateTimeOffset(2026, 10, 29, 23, 0, 0, TimeSpan.Zero);
+        time.Now = due.AddHours(8);
+        var prompt = new ScriptedPrompt(new PostponeDecision(PostponeChoice.CancelledForToday));
+
+        Runner(idleTime: new FakeIdleTime { IdleTime = TimeSpan.Zero }, prompt: prompt).Run(schedule.Id, due);
+
+        Assert.Empty(prompt.Asked);
+        Assert.Equal(RunOutcome.SkippedLate, history.Items.Single().Outcome);
+    }
+
+    [Fact]
+    public void Wake_never_asks_about_activity()
+    {
+        var schedule = new Schedule { Name = "Morning", Action = PowerAction.Wake, Time = new TimeOnly(7, 0) };
+        service.Save(schedule);
+        time.Now = new DateTimeOffset(2026, 10, 30, 7, 0, 0, TimeSpan.Zero);
+        var prompt = new ScriptedPrompt();
+
+        Runner(idleTime: new FakeIdleTime { IdleTime = TimeSpan.Zero }, prompt: prompt).Run(schedule.Id);
+
+        Assert.Empty(prompt.Asked);
+        Assert.Equal(["TurnDisplayOn"], power.Calls);
+    }
+
+    [Fact]
+    public void Turning_the_setting_off_skips_the_check()
+    {
+        var schedule = new Schedule { Name = "Night", Action = PowerAction.Shutdown, Time = new TimeOnly(23, 0) };
+        service.Save(schedule);
+        var prompt = new ScriptedPrompt();
+
+        new ScheduledRunner(service, power, new FixedWakeVerifier(WakeCheck.WokeOnSchedule), () => false, log,
+            new FakeIdleTime { IdleTime = TimeSpan.Zero }, prompt, pauseForActiveUse: false, idleThreshold: TimeSpan.FromMinutes(2))
+            .Run(schedule.Id);
+
+        Assert.Empty(prompt.Asked);
+        Assert.Equal(["Shutdown"], power.Calls);
     }
 }
 

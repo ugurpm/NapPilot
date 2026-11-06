@@ -95,6 +95,12 @@ public sealed record AppSettings
     /// <summary>PBKDF2 hash of the parental mode password, or null when one has never been set.</summary>
     public string? ParentalModePasswordHash { get; init; }
 
+    /// <summary>When on, a scheduled shutdown, restart or sleep asks before running if the user is active.</summary>
+    public bool PauseForActiveUse { get; init; } = true;
+
+    /// <summary>Below this much time since the last key press or click, the user counts as active.</summary>
+    public int IdleThresholdSeconds { get; init; } = 120;
+
 #if DEBUG
     const bool DefaultDryRun = true;
 #else

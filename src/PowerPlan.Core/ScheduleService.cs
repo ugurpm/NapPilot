@@ -110,6 +110,16 @@ public sealed class ScheduleService(IScheduleStore store, IHistoryStore history,
     void Replace(Schedule schedule) =>
         store.Save(store.Load().Where(s => s.Id != schedule.Id).Append(schedule).ToList());
 
+    /// <summary>
+    /// Arms a one-off check later today without disturbing the schedule's normal recurrence, because the user was
+    /// active when it was about to run. <see cref="ScheduledRunner"/> asks again when that time comes.
+    /// </summary>
+    public void Postpone(Schedule schedule, DateTimeOffset until)
+    {
+        backend.Register(schedule, until);
+        log.Write($"Postponing '{schedule.Name}' ({schedule.Action}) until {TimeZoneInfo.ConvertTime(until, Zone):yyyy-MM-dd HH:mm zzz}: user active");
+    }
+
     void Arm(Schedule schedule)
     {
         if (NextRun(schedule) is { } next)
@@ -126,13 +136,17 @@ public sealed class ScheduleService(IScheduleStore store, IHistoryStore history,
 
 /// <summary>Runs a schedule when the OS scheduler starts the app with <c>--run &lt;id&gt; [--at &lt;unix seconds&gt;]</c>.</summary>
 public sealed class ScheduledRunner(
-    ScheduleService schedules, IPowerController power, IWakeVerifier wakeVerifier, Func<bool> dryRun, ILog log)
+    ScheduleService schedules, IPowerController power, IWakeVerifier wakeVerifier, Func<bool> dryRun, ILog log,
+    IIdleTimeProvider idleTime, IActivityPrompt activityPrompt, bool pauseForActiveUse, TimeSpan idleThreshold)
 {
     /// <summary>
     /// launchd starts missed jobs as soon as the Mac wakes. A shutdown, restart or sleep that late would surprise
     /// the user, so it is skipped; Task Scheduler never starts late because StartWhenAvailable is off.
     /// </summary>
     public static readonly TimeSpan LateLimit = TimeSpan.FromMinutes(5);
+
+    /// <summary>Used when the user is active but the prompt gets no answer in time: never silently go ahead.</summary>
+    public static readonly TimeSpan DefaultPostpone = TimeSpan.FromMinutes(10);
 
     public bool Run(Guid id, DateTimeOffset? scheduledFor = null)
     {
@@ -152,20 +166,37 @@ public sealed class ScheduledRunner(
             RanAt = schedules.Now,
         };
 
-        // Arm the next occurrence first: shutdown or restart may end this process. If the OS refuses (on macOS an
-        // admin prompt nobody answers at night), this run must still happen; the app re-arms at its next start.
-        try
+        var isLate = schedule.Action != PowerAction.Wake && scheduledFor is { } due && schedules.Now - due > LateLimit;
+
+        // A late run is skipped outright (below); asking about activity first would only delay the inevitable skip.
+        // Checked before Advance(): postponing must not go through the calendar re-arm that would disable a one-off schedule.
+        if (!isLate && schedule.Action != PowerAction.Wake && pauseForActiveUse && idleTime.IdleTime < idleThreshold)
         {
-            schedules.Advance(schedule);
-        }
-        catch (Exception e)
-        {
-            log.Write($"Re-arming '{schedule.Name}' failed, running it anyway: {e.Message}");
+            var decision = activityPrompt.Ask(schedule, scheduledFor ?? schedules.Now);
+            switch (decision.Choice)
+            {
+                case PostponeChoice.Postpone:
+                    var until = schedules.Now + (decision.PostponeBy ?? DefaultPostpone);
+                    schedules.Postpone(schedule, until);
+                    schedules.Record(record with { Outcome = RunOutcome.Postponed, Detail = $"Postponed {FormatDuration(decision.PostponeBy ?? DefaultPostpone)}: you were active" });
+                    return true;
+                case PostponeChoice.CancelledForToday:
+                    SafeAdvance(schedule);
+                    log.Write($"Cancelling '{schedule.Name}' ({schedule.Action}) for today: user active");
+                    schedules.Record(record with { Outcome = RunOutcome.CancelledForToday, Detail = "Cancelled: you were active" });
+                    return true;
+                case PostponeChoice.Proceed:
+                    break;
+            }
         }
 
-        if (schedule.Action != PowerAction.Wake && scheduledFor is { } due && schedules.Now - due > LateLimit)
+        // Arm the next occurrence first: shutdown or restart may end this process. If the OS refuses (on macOS an
+        // admin prompt nobody answers at night), this run must still happen; the app re-arms at its next start.
+        SafeAdvance(schedule);
+
+        if (isLate)
         {
-            log.Write($"Skipping '{schedule.Name}' ({schedule.Action}): due {due:yyyy-MM-dd HH:mm zzz}, started too late");
+            log.Write($"Skipping '{schedule.Name}' ({schedule.Action}): due {scheduledFor:yyyy-MM-dd HH:mm zzz}, started too late");
             schedules.Record(record with { Outcome = RunOutcome.SkippedLate });
             return true;
         }
@@ -198,6 +229,18 @@ public sealed class ScheduledRunner(
         return true;
     }
 
+    void SafeAdvance(Schedule schedule)
+    {
+        try
+        {
+            schedules.Advance(schedule);
+        }
+        catch (Exception e)
+        {
+            log.Write($"Re-arming '{schedule.Name}' failed, running it anyway: {e.Message}");
+        }
+    }
+
     static string Describe(WakeCheck check) => check switch
     {
         WakeCheck.WokeOnSchedule => "Woke the computer on schedule",
@@ -205,4 +248,6 @@ public sealed class ScheduledRunner(
         WakeCheck.OtherWakeSource => "Something else woke the computer",
         _ => "Could not confirm what woke the computer",
     };
+
+    static string FormatDuration(TimeSpan span) => span.TotalHours >= 1 ? $"{span.TotalHours:0.#}h" : $"{(int)span.TotalMinutes}m";
 }

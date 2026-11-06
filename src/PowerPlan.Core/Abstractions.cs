@@ -59,3 +59,30 @@ public interface ILoginItem
     bool IsEnabled { get; }
     void SetEnabled(bool enabled);
 }
+
+/// <summary>How long the user has gone without touching the keyboard or mouse.</summary>
+public interface IIdleTimeProvider
+{
+    TimeSpan IdleTime { get; }
+}
+
+public enum PostponeChoice
+{
+    /// <summary>Go ahead with the scheduled action now.</summary>
+    Proceed,
+    /// <summary>Check again after <see cref="PostponeDecision.PostponeBy"/>.</summary>
+    Postpone,
+    /// <summary>Skip today's run; the schedule still fires at its next normal occurrence.</summary>
+    CancelledForToday,
+}
+
+public sealed record PostponeDecision(PostponeChoice Choice, TimeSpan? PostponeBy = null);
+
+/// <summary>
+/// Shown instead of running a schedule straight away when the user is actively using the computer, so a
+/// shutdown, restart or sleep never catches them without warning. Not asked for <see cref="PowerAction.Wake"/>.
+/// </summary>
+public interface IActivityPrompt
+{
+    PostponeDecision Ask(Schedule schedule, DateTimeOffset scheduledFor);
+}
