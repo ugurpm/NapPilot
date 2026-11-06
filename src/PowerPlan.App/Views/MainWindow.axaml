@@ -95,10 +95,14 @@
         <TextBlock Text="NapPilot" FontSize="22" FontWeight="Bold" />
         <TextBlock Text="{Binding Version}" FontSize="12" Opacity="0.6" />
       </StackPanel>
-      <Button Grid.Column="2" Classes="accent" VerticalAlignment="Center"
-              IsVisible="{Binding Updater.IsUpdateReady}" Command="{Binding RestartToUpdateCommand}">
-        <TextBlock Text="{Binding Updater.ReadyVersion, StringFormat='Restart to update to {0}'}" />
-      </Button>
+      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <Button Classes="chip" IsVisible="{Binding ParentalModeEnabled}" Command="{Binding ToggleLockCommand}">
+          <TextBlock Text="{Binding LockLabel, StringFormat='Parental mode: {0}'}" />
+        </Button>
+        <Button Classes="accent" IsVisible="{Binding Updater.IsUpdateReady}" Command="{Binding RestartToUpdateCommand}">
+          <TextBlock Text="{Binding Updater.ReadyVersion, StringFormat='Restart to update to {0}'}" />
+        </Button>
+      </StackPanel>
     </Grid>
 
     <!-- Banners -->
@@ -340,6 +344,24 @@
                   <NumericUpDown Value="{Binding SettingGraceSeconds}" Minimum="0" Maximum="600" Increment="15" Width="160" HorizontalAlignment="Left" FormatString="0" />
                   <TextBlock FontSize="12" Opacity="0.65" TextWrapping="Wrap"
                              Text="You can cancel during this time (on Windows: run 'shutdown /a'; on macOS: click Cancel in the dialog)." />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+              <StackPanel Spacing="14">
+                <TextBlock Classes="h2" Text="Parental mode" />
+                <TextBlock FontSize="12" Opacity="0.65" TextWrapping="Wrap"
+                           Text="When it's on, adding, editing, pausing, resuming or deleting a schedule, and clearing history, all need the password. Everyone can still see the schedule list, history, filters and search." />
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding !ParentalModeEnabled}">
+                  <Button Classes="accent" Content="Turn on parental mode" Command="{Binding TurnOnParentalModeCommand}" />
+                </StackPanel>
+                <StackPanel Spacing="8" IsVisible="{Binding ParentalModeEnabled}">
+                  <TextBlock Text="{Binding LockLabel, StringFormat='Currently: {0} for this window'}" FontSize="13" />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Change password" Command="{Binding ChangeParentalPasswordCommand}" />
+                    <Button Content="Turn off" Command="{Binding TurnOffParentalModeCommand}" />
+                  </StackPanel>
                 </StackPanel>
               </StackPanel>
             </Border>

@@ -89,6 +89,12 @@ public sealed record AppSettings
     /// <summary>Set once start at sign-in has been switched on by default; see <see cref="StartAtSignIn"/>.</summary>
     public bool StartAtSignInDefaultApplied { get; init; }
 
+    /// <summary>When on, changing a schedule needs the password; see <see cref="ParentalMode"/>.</summary>
+    public bool ParentalModeEnabled { get; init; }
+
+    /// <summary>PBKDF2 hash of the parental mode password, or null when one has never been set.</summary>
+    public string? ParentalModePasswordHash { get; init; }
+
 #if DEBUG
     const bool DefaultDryRun = true;
 #else
