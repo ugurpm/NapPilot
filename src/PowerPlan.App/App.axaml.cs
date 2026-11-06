@@ -120,7 +120,8 @@ public partial class App : Application
     {
         if (window is null)
         {
-            window = new MainWindow { DataContext = new MainViewModel(Services, updater) };
+            window = new MainWindow();
+            window.DataContext = new MainViewModel(Services, updater, new AvaloniaPasswordPrompt(window));
             window.Closed += (_, _) => window = null;
         }
         window.Show();

@@ -22,12 +22,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public const string FilterAll = "All", FilterUpcoming = "Upcoming", FilterPast = "Past";
 
     readonly AppServices services;
+    readonly IPasswordPrompt passwordPrompt;
     readonly DispatcherTimer clock;
     bool loadingSettings;
 
-    public MainViewModel(AppServices services, Updater updater)
+    public MainViewModel(AppServices services, Updater updater, IPasswordPrompt passwordPrompt)
     {
         this.services = services;
+        this.passwordPrompt = passwordPrompt;
         Updater = updater;
 
         var wake = WakeAdvisor.Assess(services.Capabilities);
@@ -114,7 +116,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    void Save()
+    async Task Save()
     {
         Notice = null;
         if (Time is not { } time)
@@ -127,6 +129,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Error = "Pick a date.";
             return;
         }
+        if (!await EnsureUnlockedAsync()) return;
 
         var schedule = new Schedule
         {
@@ -240,8 +243,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    void Delete(EntryRow row)
+    async Task Delete(EntryRow row)
     {
+        if (!await EnsureUnlockedAsync()) return;
         try
         {
             if (row.IsPast) services.Schedules.RemovePast(row.Entry);
@@ -258,9 +262,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    void Toggle(EntryRow row)
+    async Task Toggle(EntryRow row)
     {
         if (row.Entry.Schedule is not { } s) return;
+        if (!await EnsureUnlockedAsync()) return;
         try
         {
             var errors = services.Schedules.SetEnabled(s.Id, row.IsPaused);
@@ -275,8 +280,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    void ClearPast()
+    async Task ClearPast()
     {
+        if (!await EnsureUnlockedAsync()) return;
         services.Schedules.ClearPast();
         Notice = "Cleared past schedules.";
         Refresh();
@@ -298,6 +304,93 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ? "No schedules yet. Add one on the left: pick an action, a time and when it repeats."
             : "Nothing matches these filters.";
         UpdatePreview();
+    }
+
+    // ---------- Parental mode ----------
+
+    public bool ParentalModeEnabled => services.Settings.ParentalModeEnabled;
+
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(LockLabel))]
+    bool isUnlocked;
+
+    public string LockLabel => IsUnlocked ? "Unlocked" : "Locked";
+
+    /// <summary>Call before any schedule mutation. Prompts for the password the first time; stays unlocked until the window closes or Lock is pressed.</summary>
+    async Task<bool> EnsureUnlockedAsync()
+    {
+        if (!ParentalModeEnabled || IsUnlocked) return true;
+
+        var password = await passwordPrompt.ConfirmAsync(
+            "Parental mode", "Enter the parental mode password to change schedules.", pwd => ParentalMode.Verify(services.Settings, pwd));
+        if (password is null) return false;
+
+        IsUnlocked = true;
+        return true;
+    }
+
+    [RelayCommand]
+    async Task ToggleLock()
+    {
+        if (IsUnlocked) IsUnlocked = false;
+        else await EnsureUnlockedAsync();
+    }
+
+    [RelayCommand]
+    async Task TurnOnParentalMode()
+    {
+        var password = await passwordPrompt.SetAsync(
+            "Turn on parental mode", "Choose a password. It will be needed to add, edit, pause, resume or delete a schedule.");
+        if (password is null) return;
+
+        var (errors, updated) = ParentalMode.Enable(services.Settings, password);
+        if (errors.Count > 0)
+        {
+            Notice = string.Join(" ", errors);
+            return;
+        }
+        services.SaveSettings(updated);
+        OnPropertyChanged(nameof(ParentalModeEnabled));
+        IsUnlocked = true;
+        Notice = "Parental mode is on.";
+    }
+
+    [RelayCommand]
+    async Task TurnOffParentalMode()
+    {
+        var password = await passwordPrompt.ConfirmAsync(
+            "Turn off parental mode", "Enter the current password.", pwd => ParentalMode.Verify(services.Settings, pwd));
+        if (password is null) return;
+
+        var (errors, updated) = ParentalMode.Disable(services.Settings, password);
+        if (errors.Count > 0)
+        {
+            Notice = string.Join(" ", errors);
+            return;
+        }
+        services.SaveSettings(updated);
+        OnPropertyChanged(nameof(ParentalModeEnabled));
+        IsUnlocked = false;
+        Notice = "Parental mode is off.";
+    }
+
+    [RelayCommand]
+    async Task ChangeParentalPassword()
+    {
+        var current = await passwordPrompt.ConfirmAsync(
+            "Change password", "Enter the current password.", pwd => ParentalMode.Verify(services.Settings, pwd));
+        if (current is null) return;
+
+        var next = await passwordPrompt.SetAsync("Change password", "Choose a new password.");
+        if (next is null) return;
+
+        var (errors, updated) = ParentalMode.ChangePassword(services.Settings, current, next);
+        if (errors.Count > 0)
+        {
+            Notice = string.Join(" ", errors);
+            return;
+        }
+        services.SaveSettings(updated);
+        Notice = "Password changed.";
     }
 
     // ---------- Settings ----------

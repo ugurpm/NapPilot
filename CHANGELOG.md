@@ -5,6 +5,12 @@ and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Parental mode: set a password under Settings to require it before any schedule can be added, edited, paused, resumed
+  or deleted, or history cleared. The schedule list, history, filters and search stay visible to everyone. The password
+  is hashed, never stored in plain text; once entered it unlocks the window until it's closed or locked again.
+
 ## [1.0.2] - 2026-11-02
 
 No changes to the app: it behaves exactly like 1.0.1.

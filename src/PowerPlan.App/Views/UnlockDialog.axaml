@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:PowerPlan.App.ViewModels"
+        x:Class="PowerPlan.App.Views.UnlockDialog"
+        x:DataType="vm:UnlockDialogViewModel"
+        Title="{Binding Title}"
+        Width="360" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+  <StackPanel Spacing="12" Margin="20">
+    <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+    <TextBox Name="PasswordBox" PasswordChar="•" PlaceholderText="Password" Text="{Binding Password}" />
+    <TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}" Foreground="#DC2626" TextWrapping="Wrap" FontSize="12" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Cancel" Command="{Binding CancelCommand}" IsCancel="True" />
+      <Button Content="Unlock" Classes="accent" Command="{Binding ConfirmCommand}" IsDefault="True" />
+    </StackPanel>
+  </StackPanel>
+</Window>
