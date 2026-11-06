@@ -35,7 +35,7 @@ Set it once and your PC or Mac turns off at night, wakes up before you do, and r
 | 🎨 **One clear list** | Upcoming and past schedules side by side, each action in its own colour. Filter by upcoming / past, by action, or search by name. |
 | ✏️ **Edit, pause, delete** | Change any future schedule, pause it without losing it, delete it. Past runs can be deleted too, one by one or all at once. |
 | 📜 **History** | Every run is recorded: done, skipped because the computer was off, or failed, and whether a wake really woke the computer. |
-| 🛑 **No surprises** | A cancellable warning before every shutdown or restart. A shutdown that was missed while the computer was off **never** fires later. |
+| 🛑 **No surprises** | A cancellable warning before every shutdown or restart. A shutdown that was missed while the computer was off **never** fires later. If you're actively using the computer when a schedule is about to run, NapPilot asks first instead of just running it. |
 | 🌙 **Wake that works on modern laptops** | On Windows laptops with Modern Standby, timers cannot wake the PC from sleep. NapPilot turns sleep into hibernate while a wake is pending, so the wake fires. |
 | 🔄 **Updates itself** | Downloads new versions in the background and installs them when you restart it. |
 | 🔒 **Local and private** | No account, no cloud, no tracking. Schedules live in a JSON file on your computer. |
@@ -75,6 +75,7 @@ The builds are not code-signed yet, so the first launch shows a warning.
 - **NapPilot starts when you sign in**, in the tray / menu bar, because wake schedules and updates need it running. Turn it off in the app's Settings, in Windows *Settings → Apps → Startup*, or in macOS *Login Items*; NapPilot won't turn it back on.
 - **Mac wake asks for your password.** macOS needs administrator rights to schedule a wake (`pmset`), so NapPilot asks once and schedules the next 30 days at a time.
 - **Testing without risk:** *Settings → Dry-run* makes every schedule fire on time but only write to the log instead of turning anything off.
+- **Still at your desk?** If a scheduled shutdown, restart or sleep is about to run while you're actively using the computer, NapPilot asks instead of just running it: postpone (10 min / 30 min / 1 hour) or cancel for today. It keeps asking for as long as you stay busy. Idle computers and Wake schedules are unaffected.
 - **Parental mode:** turn it on under *Settings → Parental mode*. The password is hashed, never stored in plain text. Once you enter it, the window stays unlocked until you close it or lock it again.
 </details>
 
