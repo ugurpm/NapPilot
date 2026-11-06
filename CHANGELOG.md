@@ -5,6 +5,8 @@ and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-11-06
+
 ### Added
 
 - Parental mode: set a password under Settings to require it before any schedule can be added, edited, paused, resumed
@@ -52,7 +54,8 @@ First public release.
 - Installers and portable zips for Windows (x64, ARM64) and macOS (Apple silicon, Intel), automatic updates from GitHub
   Releases, SHA-256 checksums and SLSA build provenance.
 
-[Unreleased]: https://github.com/ugurpm/NapPilot/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/ugurpm/NapPilot/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/ugurpm/NapPilot/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/ugurpm/NapPilot/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/ugurpm/NapPilot/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ugurpm/NapPilot/releases/tag/v1.0.0
