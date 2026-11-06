@@ -26,6 +26,13 @@ internal static class NativeMethods
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct LASTINPUTINFO
+    {
+        public uint cbSize;
+        public uint dwTime;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct SYSTEM_POWER_STATUS
     {
         public byte ACLineStatus;
@@ -63,4 +70,7 @@ internal static class NativeMethods
 
     [DllImport("user32.dll")]
     public static extern IntPtr RegisterPowerSettingNotification(IntPtr hWnd, ref Guid powerSetting, int flags);
+
+    [DllImport("user32.dll")]
+    public static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
 }

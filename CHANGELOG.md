@@ -5,6 +5,13 @@ and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- A scheduled shutdown, restart or sleep no longer catches you mid-task: if you're actively using the computer when
+  it's about to run, NapPilot asks first and lets you **postpone** (for 10 minutes, 30 minutes or an hour) or
+  **cancel for today**. If you postpone, it asks again when that time comes, for as long as you stay busy. Idle
+  computers are unaffected; Wake schedules never ask.
+
 ## [1.0.3] - 2026-11-06
 
 ### Added

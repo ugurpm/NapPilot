@@ -56,6 +56,10 @@ public enum RunOutcome
     DryRun,
     /// <summary>The OS started the run too late (the PC was off or asleep), so it was not carried out.</summary>
     SkippedLate,
+    /// <summary>The user was active; the action will be tried again after a delay they chose.</summary>
+    Postponed,
+    /// <summary>The user was active and chose to skip today's run.</summary>
+    CancelledForToday,
     Failed,
 }
 

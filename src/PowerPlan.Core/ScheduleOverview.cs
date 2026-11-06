@@ -19,6 +19,8 @@ public sealed record ScheduleEntry(EntryKind Kind, string Name, PowerAction Acti
         { Outcome: RunOutcome.Done } r => r.Detail ?? "Done",
         { Outcome: RunOutcome.DryRun } => "Dry-run: only logged",
         { Outcome: RunOutcome.SkippedLate } => "Skipped: the computer was off or asleep at that time",
+        { Outcome: RunOutcome.Postponed } r => r.Detail ?? "Postponed: you were active",
+        { Outcome: RunOutcome.CancelledForToday } r => r.Detail ?? "Cancelled: you were active",
         { Outcome: RunOutcome.Failed } r => $"Failed: {r.Detail}",
         _ => "",
     };

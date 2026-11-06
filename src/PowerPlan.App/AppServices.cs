@@ -51,12 +51,16 @@ public sealed class AppServices
         IScheduleBackend backend = new TaskSchedulerBackend(exe, log);
         IWakeVerifier verifier = new WindowsWakeVerifier(log);
         ILoginItem? loginItem = new WindowsLoginItem(exe);
+        IIdleTimeProvider idleTime = new WindowsIdleTimeProvider();
+        IActivityPrompt activityPrompt = new WindowsActivityPrompt(log);
 #else
         PowerCapabilities capabilities;
         IPowerController realPower;
         IScheduleBackend backend;
         IWakeVerifier verifier;
         ILoginItem? loginItem;
+        IIdleTimeProvider idleTime;
+        IActivityPrompt activityPrompt;
         if (OperatingSystem.IsMacOS())
         {
             capabilities = new MacCapabilityProbe().Probe();
@@ -64,6 +68,8 @@ public sealed class AppServices
             backend = new MacScheduleBackend(exe, dir, log);
             verifier = new MacWakeVerifier(log);
             loginItem = new MacLoginItem(exe);
+            idleTime = new MacIdleTimeProvider();
+            activityPrompt = new MacActivityPrompt(log);
         }
         else
         {
@@ -72,6 +78,8 @@ public sealed class AppServices
             backend = new UnsupportedBackend(log);
             verifier = (UnsupportedBackend)backend;
             loginItem = null;
+            idleTime = new AlwaysIdleTimeProvider();
+            activityPrompt = new NeverPrompts();
         }
 #endif
 
@@ -93,7 +101,8 @@ public sealed class AppServices
             Power = power,
             SleepRequests = sleepRequests,
             Schedules = schedules,
-            Runner = new ScheduledRunner(schedules, power, verifier, dryRun, log),
+            Runner = new ScheduledRunner(schedules, power, verifier, dryRun, log,
+                idleTime, activityPrompt, settings.PauseForActiveUse, TimeSpan.FromSeconds(settings.IdleThresholdSeconds)),
             LoginItem = loginItem,
             DataDirectory = dir,
         };
@@ -106,6 +115,17 @@ public sealed class AppServices
         public void Register(Schedule schedule, DateTimeOffset runAt) => log.Write($"[unsupported OS] would arm '{schedule.Name}' for {runAt}");
         public void Unregister(Guid scheduleId) { }
         public WakeCheck Check(Guid scheduleId) => WakeCheck.Unknown;
+    }
+
+    /// <summary>Linux has no idle-time API wired up yet: never asks, same as before this feature existed.</summary>
+    sealed class AlwaysIdleTimeProvider : IIdleTimeProvider
+    {
+        public TimeSpan IdleTime => TimeSpan.MaxValue;
+    }
+
+    sealed class NeverPrompts : IActivityPrompt
+    {
+        public PostponeDecision Ask(Schedule schedule, DateTimeOffset scheduledFor) => new(PostponeChoice.Proceed);
     }
 #endif
 }
