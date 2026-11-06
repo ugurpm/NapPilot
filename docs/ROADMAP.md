@@ -20,7 +20,7 @@ Status as of 2026-11-02. Released changes are listed in [CHANGELOG.md](../CHANGE
 - Dry-run on in Debug builds, off in Release builds.
 - Velopack installers and auto-update from GitHub Releases (full and delta packages); release workflow for win-x64,
   win-arm64, osx-arm64, osx-x64 with SLSA provenance and checksums. Update-ready is offered in the window and the tray.
-- Releases: v1.0.0 (2026-10-29), v1.0.1 (2026-11-02). Auto-update verified on a real install: a v1.0.0 copy found and
+- Releases: v1.0.0 (2026-10-29), v1.0.1 and v1.0.2 (2026-11-02; 1.0.2 is docs only). Auto-update verified on a real install: a v1.0.0 copy found and
   offered v1.0.1.
 - Public repo hardened: protected `main` and `v*` tags, CodeQL, dependency review, Dependabot, OpenSSF Scorecard,
   secret scanning with push protection, private vulnerability reporting.
