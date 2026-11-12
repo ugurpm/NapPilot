@@ -5,6 +5,11 @@ and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- The header's parental mode indicator now reads **On** / **Off**, matching every other on/off setting in the app,
+  instead of Locked / Unlocked (which read as a third state at a glance).
+
 ## [1.0.5] - 2026-11-12
 
 ### Fixed

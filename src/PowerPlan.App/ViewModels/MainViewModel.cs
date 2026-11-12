@@ -318,9 +318,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public string LockLabel => !ParentalModeEnabled ? "Off" : IsUnlocked ? "Unlocked" : "Locked";
 
-    /// <summary>Shown in the header at all times, so whether schedules are password-protected is never a guess.</summary>
+    /// <summary>
+    /// Shown in the header at all times, so whether schedules are password-protected is never a guess. Says On/Off
+    /// (matching every other on/off setting in the app) rather than Locked/Unlocked, which read as a third state.
+    /// </summary>
     public string HeaderLockText => !ParentalModeEnabled ? "Parental mode: Off"
-        : IsUnlocked ? "\U0001F513 Parental mode: Unlocked" : "\U0001F512 Parental mode: Locked";
+        : IsUnlocked ? "\U0001F513 Parental mode: On" : "\U0001F512 Parental mode: On";
 
     /// <summary>Call before any schedule mutation. Prompts for the password the first time; stays unlocked until the window closes or Lock is pressed.</summary>
     async Task<bool> EnsureUnlockedAsync()
