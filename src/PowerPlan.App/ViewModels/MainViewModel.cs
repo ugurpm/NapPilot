@@ -310,10 +310,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public bool ParentalModeEnabled => services.Settings.ParentalModeEnabled;
 
-    [ObservableProperty, NotifyPropertyChangedFor(nameof(LockLabel))]
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(LockLabel), nameof(IsLocked), nameof(HeaderLockText))]
     bool isUnlocked;
 
-    public string LockLabel => IsUnlocked ? "Unlocked" : "Locked";
+    /// <summary>True only when parental mode is on and this window hasn't unlocked it yet.</summary>
+    public bool IsLocked => ParentalModeEnabled && !IsUnlocked;
+
+    public string LockLabel => !ParentalModeEnabled ? "Off" : IsUnlocked ? "Unlocked" : "Locked";
+
+    /// <summary>Shown in the header at all times, so whether schedules are password-protected is never a guess.</summary>
+    public string HeaderLockText => !ParentalModeEnabled ? "Parental mode: Off"
+        : IsUnlocked ? "\U0001F513 Parental mode: Unlocked" : "\U0001F512 Parental mode: Locked";
 
     /// <summary>Call before any schedule mutation. Prompts for the password the first time; stays unlocked until the window closes or Lock is pressed.</summary>
     async Task<bool> EnsureUnlockedAsync()
@@ -350,6 +357,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         services.SaveSettings(updated);
         OnPropertyChanged(nameof(ParentalModeEnabled));
+        OnPropertyChanged(nameof(LockLabel));
+        OnPropertyChanged(nameof(IsLocked));
+        OnPropertyChanged(nameof(HeaderLockText));
         IsUnlocked = true;
         Notice = "Parental mode is on.";
     }
@@ -369,6 +379,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         services.SaveSettings(updated);
         OnPropertyChanged(nameof(ParentalModeEnabled));
+        OnPropertyChanged(nameof(LockLabel));
+        OnPropertyChanged(nameof(IsLocked));
+        OnPropertyChanged(nameof(HeaderLockText));
         IsUnlocked = false;
         Notice = "Parental mode is off.";
     }

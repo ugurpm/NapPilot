@@ -5,6 +5,16 @@ and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- A scheduled shutdown, restart or sleep that asked whether you were active (added in 1.0.4) could fail silently
+  instead of ever running: the native prompt crashed because it never enabled visual styles outside the main window.
+
+### Changed
+
+- The parental mode indicator in the header is now always visible, not just while it's on, and colour-coded
+  (grey "Off", amber "Locked", green "Unlocked") so whether schedule changes need the password is obvious at a glance.
+
 ## [1.0.4] - 2026-11-06
 
 ### Added

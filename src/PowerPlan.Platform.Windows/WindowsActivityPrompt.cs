@@ -8,6 +8,15 @@ public sealed class WindowsActivityPrompt(ILog log) : IActivityPrompt
 {
     static readonly TimeSpan PromptTimeout = TimeSpan.FromMinutes(2);
 
+    static bool visualStylesEnabled;
+
+    static void EnsureVisualStyles()
+    {
+        if (visualStylesEnabled) return;
+        Application.EnableVisualStyles();
+        visualStylesEnabled = true;
+    }
+
     static readonly (string Label, TimeSpan Duration)[] PostponeOptions =
     [
         ("10 minutes", TimeSpan.FromMinutes(10)),
@@ -17,6 +26,11 @@ public sealed class WindowsActivityPrompt(ILog log) : IActivityPrompt
 
     public PostponeDecision Ask(Schedule schedule, DateTimeOffset scheduledFor)
     {
+        // The headless "--run" process never calls this (no Avalonia window is created there either), so visual
+        // styles are never enabled; without them TaskDialogIndirect isn't found in comctl32 and ShowDialog throws,
+        // silently skipping the shutdown/restart/sleep this prompt is guarding.
+        EnsureVisualStyles();
+
         var postpone = new TaskDialogButton("Postpone…");
         var cancelToday = new TaskDialogButton("Cancel for today");
         var proceed = new TaskDialogButton(ProceedLabel(schedule.Action));
